@@ -11,7 +11,7 @@
 (function () {
   "use strict";
 
-  const DEFAULTS = { owner: "Luri-den", repo: "fclibraries", branch: "" };   // blank branch = the repo's default
+  const DEFAULTS = { owner: "Luri-den", repo: "ETS", branch: "" };   // blank branch = the repo's default
   const SKEY = "ghpublish.settings.v1", TKEY = "ghpublish.token.v1";
 
   const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -194,7 +194,7 @@
       <label style="text-transform:none;letter-spacing:0;font-weight:normal;display:flex;gap:6px;align-items:center;margin-top:8px">
         <input type="checkbox" id="ghp-rem"> Remember on this device (otherwise it is forgotten when you close the tab)</label>
       <div class="sub" style="margin-top:10px">Make a token at github.com \u2192 Settings \u2192 Developer settings \u2192 Fine-grained tokens:
-        <ol><li>Repository access: <b>Only select repositories</b> \u2192 fclibraries</li>
+        <ol><li>Repository access: <b>Only select repositories</b> \u2192 ETS</li>
         <li>Permissions \u2192 Repository \u2192 <b>Contents: Read and write</b></li>
         <li>Pick an expiry date, create it, copy it here</li></ol></div>
       <div class="ghp-msg" id="ghp-m"></div>
