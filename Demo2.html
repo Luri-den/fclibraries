@@ -8,7 +8,7 @@
 
 <style>
 
-html,body{margin:0;height:100%;font-family:Arial,sans-serif}
+html,body{margin:0;height:100%;font-family:Arial,sans-serif} 
 
 #bar{position:absolute;z-index:5;top:0;left:0;right:0;background:var(--bar,#E47303);color:#fff;padding:calc(6px + env(safe-area-inset-top)) 10px 8px;display:flex;flex-direction:column;gap:6px}
 .bar-top{display:flex;justify-content:space-between;align-items:center}
@@ -421,7 +421,7 @@ html,body{margin:0;height:100%;font-family:Arial,sans-serif}
 <body>
 
 <div id="welcomeOverlay" role="button" aria-label="Skip welcome introduction">
-  <img id="welcomeImage" alt="Discover Historic Connersville">
+  <img id="welcomeImage" alt="Explore">
   <div id="welcomeSite" hidden>
     <svg id="wsLine"></svg>
     <img id="wsPhoto" alt="">
@@ -458,7 +458,7 @@ html,body{margin:0;height:100%;font-family:Arial,sans-serif}
 
 <div id="bar">
   <div class="bar-top">
-    <h1>Discover Connersville's Past</h1>
+    <h1>Explore</h1>
     <button id="passportBtn" type="button">🏆 <span id="passportCount">0/0</span> Found</button>
   </div>
   <input id="q" type="search" placeholder="Search places..." aria-label="Search places">
@@ -867,7 +867,7 @@ const SITE = {
       ]
     }
   ],
-  memoryUrl: "mailto:connersville@example.org",
+  memoryUrl: "mailto:example@example.org",
   files: {
     locations: "locations.csv",
     children: "childmarkers.csv",
