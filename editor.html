@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Connersville Map — Editor</title>
+<script src="workspace.js"></script>
+<script>Workspace.install();</script>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <style>
   :root{
@@ -217,6 +219,7 @@
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="icons.js"></script>
 <script src="marker-shapes.js"></script>
+<script src="photo-resize.js"></script>
   <script src="publish.js"></script>
 <script>
 /* ============================================================
@@ -274,6 +277,10 @@ function pinColor(cat){
 const DEFAULT_CAT = "COMM";
 
 /* Preserve exact header order from the source files */
+window.PhotoResize = window.PhotoResize || {   // stand-in so uploads still work if photo-resize.js was not uploaded
+  process: async f => ({ blob: f, ext: ((String(f.name || "").split(".").pop() || "jpg").toLowerCase()), resized: false, why: "off" }),
+  describe: () => "download when you publish", controlHtml: () => "", wire(){}, settings: () => ({ on: false })
+};
 window.MarkerShapes = window.MarkerShapes || {   // stand-in so the editor still works if marker-shapes.js was not uploaded
   BUILTIN: { circle: { label: "Circle", clip: "" } }, TEMPLATES: {}, clipFor: () => "", apply(){}, parseRows: () => ({}), parsePoints: () => null,
   pointsToClip: () => "", list: () => [{ code: "circle", label: "Circle", clip: "", custom: false }], slug: s => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-")
@@ -364,6 +371,7 @@ $("reloadCSVs").onclick = async () => {
     if (locRes.ok) ingest(Papa.parse(await locRes.text(), { header:true, skipEmptyLines:"greedy" }), "loc", "locations.csv");
     if (chiRes.ok) ingest(Papa.parse(await chiRes.text(), { header:true, skipEmptyLines:"greedy" }), "child", "childmarkers.csv");
     selected = null;
+    await loadExtras();
     toast("Reloaded from server");
   } catch (e) {
     toast("Reload failed: " + e.message);
@@ -962,6 +970,7 @@ function photoBlock(id, row){
         <div>Photo file path (any folder, optional)</div>
         <input type="text" id="f-PHOTO" value="${typed}" placeholder="photos/${safe}.jpg or shared/old-depot.jpg" style="width:100%;margin:4px 0">
         <div class="sub" id="photoNote">Leave blank to use <code>photos/${safe}.jpg</code> (or png/webp/JPG/PNG). A typed path wins over an uploaded photo.</div>
+        ${PhotoResize.controlHtml()}
         <div class="actions">
           <button class="small" id="uploadPhoto" type="button">Upload photo…</button>
           <input type="file" id="photoInput" accept="image/*" hidden>
@@ -1035,10 +1044,12 @@ function wirePhotoBlock(scope, id, row){
       toast("Staged " + name + " - it will publish to anims/");
     };
   }
-  input.onchange = () => {
-    const f = input.files[0]; if (!f) return;
-    const ext = (f.name.split(".").pop() || "jpg").toLowerCase();
-    const name = id + "." + ext;
+  PhotoResize.wire(scope);
+  input.onchange = async () => {
+    const picked = input.files[0]; if (!picked) return;
+    const r = await PhotoResize.process(picked), f = r.blob;
+    const name = id + "." + r.ext;
+    stagedPhotos = stagedPhotos.filter(p => p.name !== name);
     stagedPhotos.push({ name, blob: f });
     // show in the panel
     const im = new Image();
@@ -1050,7 +1061,8 @@ function wirePhotoBlock(scope, id, row){
     };
     im.src = URL.createObjectURL(f);
     renderStaged();
-    toast("Staged " + name + " — download when you publish");
+    toast("Staged " + name + ": " + PhotoResize.describe(r));
+    input.value = "";
   };
 }
 
@@ -1320,6 +1332,25 @@ const rowsFor = id => photoRows.filter(x => x.ITEM_ID === id).sort((a, b) => (pa
 const renumber = id => rowsFor(id).forEach((x, i) => { x.ORDER = String(i + 1); });
 function renameItem(oldId, newId){ photoRows.forEach(x => { if (x.ITEM_ID === oldId) x.ITEM_ID = newId; }); }
 
+async function loadExtras(){   // photos.csv and shapes.csv from the same folder (or the event's folder)
+  try {
+    const r = await fetch("photos.csv", { cache: "no-store" });
+    if (r.ok) {
+      photoRows = Papa.parse(await r.text(), { header: true, skipEmptyLines: "greedy" }).data.map(x => ({
+        ITEM_ID: String(x.ITEM_ID||"").trim(), ORDER: String(x.ORDER||"").trim(), PATH: String(x.PATH||"").trim(),
+        CAPTION: String(x.CAPTION||"").trim(), CREDIT: String(x.CREDIT||"").trim()
+      })).filter(x => x.ITEM_ID);
+      photosLoaded = true;
+    } else if (r.status === 404) { photoRows = []; photosLoaded = true; }
+  } catch (x) {}
+  try {
+    const r = await fetch("shapes.csv", { cache: "no-store" });
+    if (r.ok) { customShapes = MarkerShapes.parseRows(Papa.parse(await r.text(), { header: true, skipEmptyLines: "greedy" }).data); shapesLoaded = true; }
+    else if (r.status === 404) shapesLoaded = true;
+  } catch (x) {}
+  render();
+}
+loadExtras();
 $("loadPhotos").onclick = () => $("filePhotos").click();
 $("filePhotos").onchange = e => {
   const f = e.target.files[0];
@@ -1344,7 +1375,7 @@ function renderGalEditor(scope, id){
   box.innerHTML = '<div class="sub" style="margin:10px 0 4px">Captions, credits and extra photos</div>' + list.map((x, i) => `
     <div class="galrow" data-i="${i}" style="border:1px solid var(--line);border-radius:8px;padding:6px;margin-bottom:6px">
       <div style="font-size:11px;color:var(--muted);margin-bottom:3px">${i === 0 ? "Main photo (its file is chosen above)" : "Extra photo " + i}</div>
-      ${i === 0 ? "" : '<input type="text" class="g-path" placeholder="folder/photo.jpg" value="' + esc(x.PATH || "") + '">'}
+      ${i === 0 ? "" : '<div style="display:flex;gap:6px"><input type="text" class="g-path" placeholder="folder/photo.jpg" value="' + esc(x.PATH || "") + '" style="flex:1"><button class="small g-fbtn" type="button">Upload…</button><input type="file" class="g-file" accept="image/*" hidden></div>'}
       <input type="text" class="g-cap" placeholder="Caption" value="${esc(x.CAPTION || "")}" style="margin-top:4px">
       <input type="text" class="g-cred" placeholder="Credit (who took it or owns it)" value="${esc(x.CREDIT || "")}" style="margin-top:4px">
       <div class="actions" style="margin-top:4px">
@@ -1368,12 +1399,28 @@ function renderGalEditor(scope, id){
         t = setTimeout(() => {
           pathEl.style.borderColor = ""; pathEl.title = "";
           if (!x.PATH) return;
+          if (stagedPhotos.some(p => p.name === x.PATH || "photos/" + p.name === x.PATH)) { pathEl.title = "Staged upload, not published yet"; return; }
           const im = new Image();
           im.onerror = () => { pathEl.style.borderColor = "#b42318"; pathEl.title = "Not found: check the folder, spelling and extension"; };
           im.src = x.PATH;
         }, 400);
       };
       pathEl.oninput();
+      const fb = rowEl.querySelector(".g-fbtn"), fi = rowEl.querySelector(".g-file");
+      fb.onclick = () => fi.click();
+      fi.onchange = async () => {
+        const picked = fi.files[0];
+        if (!picked) return;
+        const r = await PhotoResize.process(picked), f = r.blob;
+        const name = idNow() + "-" + Date.now().toString(36).slice(-4) + "." + r.ext;
+        stagedPhotos = stagedPhotos.filter(p => p.name !== name);
+        stagedPhotos.push({ name, blob: f });
+        pathEl.value = "photos/" + name;
+        pathEl.oninput();
+        renderStaged();
+        toast("Staged " + name + ": " + PhotoResize.describe(r));
+        fi.value = "";
+      };
     }
     const move = dir => { const o = list[i + dir]; const t = x.ORDER; x.ORDER = o.ORDER; o.ORDER = t; renumber(idNow()); renderGalEditor(scope, id); };
     rowEl.querySelector(".g-up").onclick = () => move(-1);

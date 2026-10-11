@@ -46,8 +46,17 @@ code{background:#eee;padding:1px 4px;border-radius:3px}
 <main>
   <p class="intro">An event is a saved copy of the site's data (and, if you want, its photos) kept in <code>events/event-name/</code> in your repository.
   <b>Applying</b> an event copies it over the live site, so visitors see that event's markers, spots, passport, and settings.
+  Each event also gets its own link (<code>Demo2.html?event=name</code>), and events you mark for the switcher appear in the About panel on the map so guests can move between them.
   GitHub copies files it already has, so nothing is uploaded and nothing is stored twice.</p>
   <div id="status" class="msg">Reading the repository&hellip;</div>
+
+  <h2>Design an event</h2>
+  <p class="intro">Build an event in the other tabs <b>without changing the live map</b>. The editors switch to the event's own folder, a red frame and a banner remind you where you are, and nothing is visible to visitors until you add the event to the switcher or give it dates.</p>
+  <div class="cols">
+    <div><label for="dnName">Event name</label><input type="text" id="dnName" placeholder="Fried Chicken Trail"><div class="sz" id="dnSlug"></div></div>
+    <div><label for="dnFrom">Start from</label><select id="dnFrom"></select></div>
+  </div>
+  <div style="margin-top:10px"><button class="go" id="dnBtn" type="button" disabled>Create the event and start designing</button></div>
 
   <h2>Save the live site as an event</h2>
   <div class="cols">
@@ -57,6 +66,7 @@ code{background:#eee;padding:1px 4px;border-radius:3px}
       <div class="sz" id="slugNote"></div>
       <label for="evNote">Note (optional)</label>
       <input type="text" id="evNote" placeholder="Oct 18 and 19, runs from the library to the depot">
+      <label class="chk" style="margin-top:12px"><input type="checkbox" id="evPublic" checked> Show in the event switcher on the map</label>
     </div>
     <div>
       <label>Data files</label><div id="dataBox"></div>
@@ -70,15 +80,18 @@ code{background:#eee;padding:1px 4px;border-radius:3px}
   <div id="list"><em>Loading&hellip;</em></div>
 </main>
 <script src="publish.js"></script>
+<script src="schedule.js"></script>
+<script src="workspace.js"></script>
 <script>
 const $ = id => document.getElementById(id);
-const DATA = ["site.csv","locations.csv","childmarkers.csv","categories.csv","spots.csv","tours.csv","tourstops.csv","stamps.csv","tasks.csv","photos.csv","overlays.json","connersville.geojson"];
+const DATA = ["site.csv","locations.csv","childmarkers.csv","categories.csv","spots.csv","tours.csv","tourstops.csv","stamps.csv","tasks.csv","photos.csv","shapes.csv","overlays.json","connersville.geojson"];
 const FOLDERS = ["photos","spots","stories","anims"];
 const SKEY = "ghpublish.settings.v1", TKEY = "ghpublish.token.v1";   // same storage as the editors' Publish button
 
 let branch = "", head = "", baseTree = "", tree = new Map(), meta = {};
 
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const isReserved = s => s === "main" || s === "index";   // "main" means the usual map in links
 const slugify = s => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 const fmtSize = b => b >= 1048576 ? (b / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1024)) + " KB";
 const say = (html, cls) => { $("status").className = "msg " + (cls || ""); $("status").innerHTML = html; };
@@ -120,7 +133,7 @@ async function load() {
       } catch (x) {}
     }
     say("");
-    renderSave(); renderList();
+    renderSave(); renderList(); fillDesignFrom(); updateDesign();
   } catch (e) {
     say(/401|403/.test(e.message) ? "GitHub refused the token (" + esc(e.message) + "). Check &#9881; GitHub settings." : "Could not read the repository: " + esc(e.message), "err");
   }
@@ -161,30 +174,50 @@ function updateSavePreview() {
   const name = $("evName").value.trim(), slug = slugify(name), sel = selected();
   const paths = livePaths(sel);
   let bytes = 0; paths.forEach(p => bytes += tree.get(p).size || 0);
-  $("slugNote").textContent = slug ? "Folder: events/" + slug + "/" : "";
+  $("slugNote").textContent = slug ? (isReserved(slug) ? "\"" + slug + "\" is reserved. Choose another name." : "Folder: events/" + slug + "/") : "";
   const exists = slug && eventSlugs().includes(slug);
   $("savePreview").innerHTML = paths.length
     ? paths.length + " files (" + fmtSize(bytes) + ") will be saved into <code>events/" + esc(slug || "…") + "/</code>. Saved copies add about that much to the size of the published site." +
       (exists ? '<br><b>An event with this name already exists. Saving will replace it.</b>' : "")
     : "Tick at least one file or folder.";
-  $("saveBtn").disabled = !(slug && paths.length);
+  $("saveBtn").disabled = !(slug && !isReserved(slug) && paths.length);
 }
 ["evName", "evNote"].forEach(id => $(id).addEventListener("input", updateSavePreview));
 $("dataBox").addEventListener("change", updateSavePreview);
 $("folderBox").addEventListener("change", updateSavePreview);
 
-async function snapshotWrites(slug, name, note, sel) {
+async function snapshotWrites(slug, name, note, sel, isPublic, extra) {
   const prefix = "events/" + slug + "/", writes = [], want = new Set();
   for (const p of livePaths(sel)) {
     const e = tree.get(p);
     writes.push({ path: prefix + p, mode: e.mode, type: "blob", sha: e.sha });
     want.add(prefix + p);
   }
-  const m = await api("/git/blobs", "POST", { content: JSON.stringify({ name, note, saved: new Date().toISOString(), files: writes.length }, null, 2), encoding: "utf-8" });
+  const info = {
+    name, note, saved: new Date().toISOString(), files: writes.length, public: !!isPublic,
+    data: sel.data.filter(f => tree.has(f)),                                              // the map reads only these from the event
+    folders: sel.folders.filter(f => [...tree.keys()].some(p => p.startsWith(f + "/")))
+  };
+  if (extra && extra.schedule) { info.schedule = extra.schedule; info.auto = !!extra.auto; }   // re-saving keeps the event's dates
+  const m = await api("/git/blobs", "POST", { content: JSON.stringify(info, null, 2), encoding: "utf-8" });
   writes.push({ path: prefix + "event.json", mode: "100644", type: "blob", sha: m.sha });
   want.add(prefix + "event.json");
   for (const p of tree.keys()) if (p.startsWith(prefix) && !want.has(p)) writes.push({ path: p, mode: "100644", type: "blob", sha: null });   // left over from an earlier save
   return writes;
+}
+
+// events/index.json is the list the map's event switcher reads. changes = { slug: { name, note, public } } for events written in this commit.
+async function indexWrite(changes) {
+  const slugs = new Set(eventSlugs());
+  Object.keys(changes).forEach(s => slugs.add(s));
+  const list = [];
+  slugs.forEach(slug => {
+    const m = changes[slug] || meta[slug] || {};
+    if (m.public || m.auto) list.push({ slug, name: m.name || slug, note: m.note || "", public: !!m.public, auto: !!m.auto, schedule: m.schedule || null });
+  });
+  list.sort((a, b) => a.name.localeCompare(b.name));
+  const b = await api("/git/blobs", "POST", { content: JSON.stringify(list, null, 2), encoding: "utf-8" });
+  return { path: "events/index.json", mode: "100644", type: "blob", sha: b.sha };
 }
 
 async function commit(writes, message) {
@@ -203,7 +236,11 @@ $("saveBtn").onclick = async () => {
   $("saveBtn").disabled = true;
   try {
     say("Saving&hellip;");
-    const c = await commit(await snapshotWrites(slug, name, note, selected()), "Save event: " + name);
+    const pub = $("evPublic").checked;
+    const prev = meta[slug] || {};
+    const writes = await snapshotWrites(slug, name, note, selected(), pub, { schedule: prev.schedule, auto: prev.auto });
+    writes.push(await indexWrite({ [slug]: { name, note, public: pub, auto: prev.auto, schedule: prev.schedule } }));
+    const c = await commit(writes, "Save event: " + name);
     await load();
     say("&#10004; Saved <b>" + esc(name) + "</b> to <code>events/" + esc(slug) + "/</code>." + commitLink(c), "ok");
   } catch (e) { say("Could not save: " + esc(e.message), "err"); }
@@ -219,14 +256,40 @@ function renderList() {
     let bytes = 0; files.forEach(([, e]) => bytes += e.size || 0);
     const when = m.saved ? new Date(m.saved).toLocaleDateString() : "";
     return '<div class="card" data-slug="' + esc(slug) + '"><h3>' + esc(m.name || slug) + '</h3>' +
-      '<div class="sub"><code>events/' + esc(slug) + '/</code> &middot; ' + files.length + " files, " + fmtSize(bytes) + (when ? " &middot; saved " + esc(when) : "") + "</div>" +
+      '<div class="sub"><code>events/' + esc(slug) + '/</code> &middot; ' + files.length + " files, " + fmtSize(bytes) + (when ? " &middot; saved " + esc(when) : "") + (m.public ? " &middot; <b>in the switcher</b>" : "") + (Workspace.current() === slug ? ' &middot; <b style="color:#d4351c">designing now</b>' : "") + (!m.public && !m.auto ? " &middot; not published (no switcher entry, no dates)" : "") + "</div>" +
       (m.note ? '<div class="sub">' + esc(m.note) + "</div>" : "") +
-      '<div class="row"><button class="go ap" type="button">Apply to live site</button><button class="rs" type="button">Re-save from live site</button></div>' +
-      '<div class="slot"></div></div>';
+      (m.schedule ? '<div class="sub">&#128197; ' + esc(EventSchedule.describe(m.schedule)) + " &middot; <b>" + esc(EventSchedule.statusText(EventSchedule.status(m.schedule)) || "") + "</b>" + (m.auto ? " &middot; opens automatically" : "") + "</div>" : "") +
+      '<div class="row">' + (Workspace.current() === slug ? '<button class="go dsg-off" type="button">Stop designing</button>' : '<button class="go dsg" type="button">Design this event</button>') + '<button class="pv" type="button">Preview</button><button class="ap" type="button">Apply to live site</button><button class="rs" type="button">Re-save from live site</button><button class="pub" type="button">' + (m.public ? "Remove from switcher" : "Add to switcher") + '</button><button class="cp" type="button">Copy link</button><button class="sch" type="button">' + (m.schedule ? "Edit dates" : "Set dates\u2026") + '</button></div>' +
+      '<div class="slot"></div><div class="slot2"></div></div>';
   }).join("");
   document.querySelectorAll("#list .card").forEach(card => {
     const slug = card.dataset.slug;
     card.querySelector(".ap").onclick = () => openApply(card, slug);
+    card.querySelector(".sch").onclick = () => openSchedule(card, slug);
+    card.querySelector(".pv").onclick = () => window.open(new URL("Demo2.html?event=" + encodeURIComponent(slug), location.href).href, "_blank");
+    const dsg = card.querySelector(".dsg"), dsgOff = card.querySelector(".dsg-off");
+    if (dsg) dsg.onclick = () => {
+      if (!confirm('Design "' + ((meta[slug] && meta[slug].name) || slug) + '"? The editor tabs will reload and switch to this event. Save or publish anything unsaved in them first.')) return;
+      Workspace.set(slug); renderList();
+      say("Now designing <b>" + esc((meta[slug] && meta[slug].name) || slug) + "</b>. Use the other tabs as usual. Publishing there saves into <code>events/" + esc(slug) + "/</code>, and the live map is not changed.", "ok");
+    };
+    if (dsgOff) dsgOff.onclick = () => { Workspace.set(""); renderList(); say("Back on the live site. The editor tabs now publish to the live map again.", "ok"); };
+    card.querySelector(".cp").onclick = async () => {
+      const url = new URL("Demo2.html?event=" + encodeURIComponent(slug), location.href).href;
+      try { await navigator.clipboard.writeText(url); say("Copied this link: <code>" + esc(url) + "</code> (good for a QR code)", "ok"); }
+      catch (e) { say("Link for this event: <code>" + esc(url) + "</code>", "ok"); }
+    };
+    card.querySelector(".pub").onclick = async () => {
+      const m = meta[slug] || { name: slug }, flag = !m.public;
+      try {
+        say("Updating&hellip;");
+        const info = Object.assign({}, m, { public: flag });
+        const b = await api("/git/blobs", "POST", { content: JSON.stringify(info, null, 2), encoding: "utf-8" });
+        const c = await commit([{ path: "events/" + slug + "/event.json", mode: "100644", type: "blob", sha: b.sha }, await indexWrite({ [slug]: info })], (flag ? "Add " : "Remove ") + slug + (flag ? " to" : " from") + " the event switcher");
+        await load();
+        say("&#10004; " + (flag ? "Added to" : "Removed from") + " the switcher." + commitLink(c), "ok");
+      } catch (e2) { say("Could not update: " + esc(e2.message), "err"); }
+    };
     card.querySelector(".rs").onclick = () => {
       $("evName").value = (meta[slug] && meta[slug].name) || slug;
       $("evNote").value = (meta[slug] && meta[slug].note) || "";
@@ -291,13 +354,138 @@ function openApply(card, slug) {
       if (q(".bk").checked) {
         const bn = q(".bkName").value.trim(), bs = slugify(bn);
         if (bs === slug) throw new Error("Give the backup a different name than the event you are applying.");
-        writes = (await snapshotWrites(bs, bn, "Saved automatically before applying " + (m.name || slug), allSel())).concat(writes);
+        writes = (await snapshotWrites(bs, bn, "Saved automatically before applying " + (m.name || slug), allSel(), false)).concat(writes);
       }
       const c = await commit(writes, "Apply event: " + (m.name || slug));
       await load();
       say("&#10004; Applied <b>" + esc(m.name || slug) + "</b> to the live site. The page updates in about a minute." + commitLink(c) +
         "<br>Open the editors again (or reload them) so they pick up the new files.", "ok");
     } catch (e) { say("Could not apply: " + esc(e.message), "err"); q(".doIt").disabled = false; }
+  };
+  refresh();
+}
+
+/* ---------- design an event: make its folder, then switch the editors to it ---------- */
+function fillDesignFrom() {
+  const sel = $("dnFrom"), keep = sel.value;
+  sel.innerHTML = '<option value="live">A copy of the live site (markers, spots, photos, everything)</option><option value="settings">Just the settings and categories (a fresh start)</option>' +
+    eventSlugs().map(s => '<option value="event:' + esc(s) + '">A copy of the event: ' + esc((meta[s] && meta[s].name) || s) + "</option>").join("");
+  if ([...sel.options].some(o => o.value === keep)) sel.value = keep;
+}
+function updateDesign() {
+  const slug = slugify($("dnName").value);
+  const bad = !slug ? "" : isReserved(slug) ? '"' + slug + '" is reserved. Choose another name.' : eventSlugs().includes(slug) ? "That name is already used. Pick another, or design the existing event below." : "";
+  $("dnSlug").textContent = slug ? (bad || "Folder: events/" + slug + "/") : "";
+  $("dnBtn").disabled = !slug || !!bad || !tree.size;
+}
+$("dnName").addEventListener("input", updateDesign);
+// GitHub Pages needs about a minute to publish a new folder. Switching the editors before then would show them empty files.
+async function waitForSite(slug) {
+  for (let i = 0; i < 45; i++) {
+    try { const r = await fetch("events/" + slug + "/event.json?t=" + Date.now(), { cache: "no-store" }); if (r.ok) return true; } catch (x) {}
+    say("Waiting for the website to publish the new event folder, which usually takes about a minute&hellip; (" + (i * 5) + " seconds so far)");
+    await new Promise(r => setTimeout(r, 5000));
+  }
+  return false;
+}
+$("dnBtn").onclick = async () => {
+  const name = $("dnName").value.trim(), slug = slugify(name), from = $("dnFrom").value, prefix = "events/" + slug + "/";
+  if (!confirm('Create "' + name + '" and switch the editor tabs to it? They will reload, so save or publish anything unsaved in them first.')) return;
+  $("dnBtn").disabled = true;
+  try {
+    say("Creating the event&hellip;");
+    const writes = [];
+    let data = [], folders = [];
+    if (from.startsWith("event:")) {
+      const src = from.slice(6), sp = "events/" + src + "/";
+      for (const [p, e] of eventFiles(src)) writes.push({ path: prefix + p.slice(sp.length), mode: e.mode, type: "blob", sha: e.sha });
+      const m = meta[src] || {};
+      data = Array.isArray(m.data) ? m.data : []; folders = Array.isArray(m.folders) ? m.folders : [];
+    } else {
+      const sel = from === "live" ? allSel() : { data: ["site.csv", "categories.csv", "shapes.csv"].filter(f => tree.has(f)), folders: [] };
+      for (const p of livePaths(sel)) { const e = tree.get(p); writes.push({ path: prefix + p, mode: e.mode, type: "blob", sha: e.sha }); }
+      data = sel.data.filter(f => tree.has(f));
+      folders = sel.folders.filter(f => [...tree.keys()].some(p => p.startsWith(f + "/")));
+    }
+    const now = new Date().toISOString();
+    const b = await api("/git/blobs", "POST", { content: JSON.stringify({ name, note: "", created: now, saved: now, files: writes.length, public: false, data, folders }, null, 2), encoding: "utf-8" });
+    writes.push({ path: prefix + "event.json", mode: "100644", type: "blob", sha: b.sha });
+    const c = await commit(writes, "Start designing event: " + name);
+    await load();
+    if (!(await waitForSite(slug))) {
+      renderList(); updateDesign();
+      say("The event was created, but the website has not published its folder yet. Wait a minute or two, then press <b>Design this event</b> on its card below." + commitLink(c));
+      return;
+    }
+    Workspace.set(slug);
+    renderList();
+    say("&#10004; Now designing <b>" + esc(name) + "</b>. Use the other tabs as usual: publishing there saves into <code>events/" + esc(slug) + "/</code> and the live map is not changed. It stays hidden from visitors until you add it to the switcher or give it dates below." + commitLink(c), "ok");
+  } catch (x) { say("Could not create the event: " + esc(x.message), "err"); }
+  updateDesign();
+};
+
+/* ---------- dates ---------- */
+const guessZone = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Indiana/Indianapolis"; } catch (x) { return "America/Indiana/Indianapolis"; } };
+const pad2 = n => String(n).padStart(2, "0");
+function openSchedule(card, slug) {
+  const slot = card.querySelector(".slot2"), m = meta[slug] || { name: slug };
+  if (slot.innerHTML) { slot.innerHTML = ""; return; }
+  const s0 = Object.assign({ repeat: "once", tz: guessZone(), soonDays: 14 }, m.schedule || {});
+  const zones = [...new Set([s0.tz].concat(EventSchedule.ZONES))];
+  const A = EventSchedule.parseLocal(s0.start), B = EventSchedule.parseLocal(s0.end);
+  const part = (ms, k) => { if (ms == null) return k === "m" ? 11 : k === "d" ? 1 : ""; const d = new Date(ms); return k === "m" ? d.getUTCMonth() + 1 : k === "d" ? d.getUTCDate() : pad2(d.getUTCHours()) + ":" + pad2(d.getUTCMinutes()); };
+  const monthOpts = sel => EventSchedule.MONTHS.map((n, i) => '<option value="' + (i + 1) + '"' + (sel === i + 1 ? " selected" : "") + ">" + n + "</option>").join("");
+  const days = (s0.days || []).map(Number);
+  slot.innerHTML = '<div class="panel">' +
+    '<label>How often</label><select class="s-rep"><option value="once">Just once</option><option value="yearly">Every year</option><option value="monthly">Every month</option><option value="weekly">Every week</option></select>' +
+    '<label>Time zone</label><select class="s-tz">' + zones.map(z => '<option value="' + esc(z) + '"' + (z === s0.tz ? " selected" : "") + ">" + esc(z.replace(/_/g, " ")) + "</option>").join("") + "</select>" +
+    '<div class="s-once"><label>Starts</label><input type="datetime-local" class="s-start" value="' + esc(s0.repeat === "once" ? (s0.start || "") : "") + '"><label>Ends</label><input type="datetime-local" class="s-end" value="' + esc(s0.repeat === "once" ? (s0.end || "") : "") + '"></div>' +
+    '<div class="s-yearly"><label>Starts</label><div class="row"><select class="y-sm">' + monthOpts(part(A, "m")) + '</select><input type="number" class="y-sd" min="1" max="31" value="' + part(A, "d") + '" style="width:70px"><input type="time" class="y-st" value="' + (A != null ? part(A, "t") : "09:00") + '"></div>' +
+      '<label>Ends</label><div class="row"><select class="y-em">' + monthOpts(part(B, "m")) + '</select><input type="number" class="y-ed" min="1" max="31" value="' + part(B, "d") + '" style="width:70px"><input type="time" class="y-et" value="' + (B != null ? part(B, "t") : "18:00") + '"></div></div>' +
+    '<div class="s-monthly"><label>Starts on day of the month</label><div class="row"><input type="number" class="m-sd" min="1" max="31" value="' + esc(s0.startDay || 1) + '" style="width:70px"><input type="time" class="m-st" value="' + esc(s0.startTime || "09:00") + '"></div>' +
+      '<label>Ends on day of the month</label><div class="row"><input type="number" class="m-ed" min="1" max="31" value="' + esc(s0.endDay || 3) + '" style="width:70px"><input type="time" class="m-et" value="' + esc(s0.endTime || "17:00") + '"></div></div>' +
+    '<div class="s-weekly"><label>On these days</label><div class="row">' + EventSchedule.DAYS.map((n, i) => '<label class="chk" style="margin:0"><input type="checkbox" class="w-day" value="' + i + '"' + (days.includes(i) ? " checked" : "") + "> " + n + "</label>").join("") + '</div>' +
+      '<label>From</label><input type="time" class="w-st" value="' + esc(s0.startTime || "09:00") + '"><label>Until</label><input type="time" class="w-et" value="' + esc(s0.endTime || "17:00") + '"></div>' +
+    '<div class="s-soonbox"><label>Show "Coming soon" this many days before it starts</label><input type="number" class="s-soon" min="0" max="365" value="' + esc(s0.soonDays == null ? 14 : s0.soonDays) + '" style="width:90px"></div>' +
+    '<label class="chk"><input type="checkbox" class="s-auto"' + (m.auto ? " checked" : "") + '> Open this event automatically on the main map while it is on</label>' +
+    '<div class="preview s-prev"></div><div class="row"><button class="go s-save" type="button">Save dates</button><button class="s-clear" type="button">Remove dates</button><button class="s-cancel" type="button">Cancel</button></div></div>';
+  const q = x => slot.querySelector(x);
+  q(".s-rep").value = s0.repeat;
+  const read = () => {
+    const rep = q(".s-rep").value, s = { repeat: rep, tz: q(".s-tz").value, soonDays: +q(".s-soon").value || 0 };
+    if (rep === "once") { s.start = q(".s-start").value; s.end = q(".s-end").value; }
+    if (rep === "yearly") { s.start = "2000-" + pad2(q(".y-sm").value) + "-" + pad2(q(".y-sd").value || 1) + "T" + (q(".y-st").value || "00:00"); s.end = "2000-" + pad2(q(".y-em").value) + "-" + pad2(q(".y-ed").value || 1) + "T" + (q(".y-et").value || "00:00"); }
+    if (rep === "monthly") { s.startDay = +q(".m-sd").value; s.startTime = q(".m-st").value; s.endDay = +q(".m-ed").value; s.endTime = q(".m-et").value; }
+    if (rep === "weekly") { s.days = [...slot.querySelectorAll(".w-day:checked")].map(x => +x.value); s.startTime = q(".w-st").value; s.endTime = q(".w-et").value; }
+    return s;
+  };
+  const refresh = () => {
+    const rep = q(".s-rep").value;
+    ["once", "yearly", "monthly", "weekly"].forEach(k => { q(".s-" + k).hidden = k !== rep; });
+    q(".s-soonbox").hidden = rep === "weekly";
+    const s = read(), probs = EventSchedule.validate(s);
+    q(".s-prev").innerHTML = probs.length ? '<span style="color:#842029">' + esc(probs.join(" ")) + "</span>" : esc(EventSchedule.describe(s)) + "<br><b>" + esc(EventSchedule.statusText(EventSchedule.status(s))) + "</b>";
+    q(".s-save").disabled = probs.length > 0;
+  };
+  slot.querySelectorAll("input,select").forEach(i => { i.addEventListener("input", refresh); i.addEventListener("change", refresh); });
+  q(".s-cancel").onclick = () => { slot.innerHTML = ""; };
+  const saveInfo = async (info, msg, okText) => {
+    try {
+      say("Saving&hellip;");
+      const b = await api("/git/blobs", "POST", { content: JSON.stringify(info, null, 2), encoding: "utf-8" });
+      const c = await commit([{ path: "events/" + slug + "/event.json", mode: "100644", type: "blob", sha: b.sha }, await indexWrite({ [slug]: info })], msg);
+      await load();
+      say("&#10004; " + okText + commitLink(c), "ok");
+    } catch (x) { say("Could not save: " + esc(x.message), "err"); }
+  };
+  q(".s-save").onclick = () => {
+    const s = read();
+    if (EventSchedule.validate(s).length) return;
+    saveInfo(Object.assign({}, m, { schedule: s, auto: q(".s-auto").checked }), "Set dates for event: " + (m.name || slug), "Dates saved for <b>" + esc(m.name || slug) + "</b>. The map reads them straight away, so no one has to do anything on the day.");
+  };
+  q(".s-clear").onclick = () => {
+    const info = Object.assign({}, m); delete info.schedule; info.auto = false;
+    saveInfo(info, "Remove dates from event: " + (m.name || slug), "Dates removed.");
   };
   refresh();
 }
