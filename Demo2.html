@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="settings-loading">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -9,7 +9,9 @@
 <style>
 
 html,body{margin:0;height:100%;font-family:Arial,sans-serif}
-
+html.settings-loading #bar,
+html.settings-loading #tools { visibility: hidden; }
+  
 #bar{position:absolute;z-index:5;top:0;left:0;right:0;background:var(--bar,#E47303);color:#fff;padding:calc(6px + env(safe-area-inset-top)) 10px 8px;display:flex;flex-direction:column;gap:6px}
 .bar-top{display:flex;justify-content:space-between;align-items:center}
 #bar h1{font-size:17px;margin:0}
@@ -946,6 +948,13 @@ const SETTINGS_READY = dataFetch("site.csv", { cache: "no-store" })
     SITE.fromCsv = true;
   });
 
+Promise.race([
+  SETTINGS_READY,
+  new Promise(r => setTimeout(r, 1500))
+]).finally(() => {
+  document.documentElement.classList.remove("settings-loading");
+});
+  
 /* ===== photos.csv: ITEM_ID, ORDER, PATH, CAPTION, CREDIT =====
    Row 1 of an item = caption and credit for its main photo (PATH blank = use the usual main photo).
    Rows 2+ = extra photos with their own PATH, caption and credit. Items with no rows work as before. */
