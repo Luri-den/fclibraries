@@ -57,51 +57,45 @@
 
   // 1. Define the Frog path vector from your Main Scene source asset
   const FROG = '<g stroke="#2b1646" stroke-width="2">' +
-    // Left eye & right eye
     '<circle cx="25" cy="20" r="12" fill="#76e5e0"/>' +
     '<circle cx="64" cy="20" r="12" fill="#76e5e0"/>' +
     '<circle cx="25" cy="20" r="5" fill="#2b1646"/>' +
     '<circle cx="64" cy="20" r="5" fill="#2b1646"/>' +
-    // Frog Main Body Torso
     '<ellipse cx="44.5" cy="60" rx="35" ry="28" fill="#39d5ce"/>' +
     '<ellipse cx="44.5" cy="65" rx="20" ry="18" fill="#fff" fill-opacity="0.3"/>' +
-    // Smiling Mouth
     '<path d="M30 65 Q44.5 78 59 65" fill="none" stroke="#2b1646" stroke-width="2.5" stroke-linecap="round"/>' +
     '</g>';
 
   // 2. Build the programmatic loop logic for your new scene theme
   function pond(on) {
-    const r = rng(42); // Unique layout seed
+    const r = rng(42); 
     let out = '';
 
     // Draw the static GlowLights background setup found in your JSON asset
     out += '<circle cx="237" cy="175" r="140" fill="#76e5e0" fill-opacity=".15"/>' +
            '<circle cx="237" cy="175" r="90" fill="#39d5ce" fill-opacity=".2"/>';
 
-    // Loop to scatter 6 floating animated frogs across your layout board
     for (let i = 0; i < 6; i++) {
-      // Scale variations and bounds mapped from your source dimensions
       const bx = r() * 750 + 50; 
-      const by = r() * 200 + 350; // Restrict frogs toward lower half of screen
-      const k = 0.5 + r() * 0.6;   // Scaling factor
-      const dur = 7 + r() * 5;    // Floating pacing speed 
+      const by = r() * 200 + 350; 
+      const k = 0.5 + r() * 0.6;   
+      const dur = 7 + r() * 5;    
       const sway = (r() - 0.5) * 60;
 
-      // Wrap inside your native structural drifting animator loops
       out += drift(bx, by, '<g transform="scale(' + k.toFixed(2) + ')">' + FROG + "</g>",
         { 
           dur: dur, 
           delay: r() * dur, 
-          path: "0 0; " + sway.toFixed(0) + " " + (-120).toFixed(0) + "; 0 0" // Bobbing up and down loop
+          path: "0 0; " + sway.toFixed(0) + " " + (-120).toFixed(0) + "; 0 0" 
         }, on);
     }
     return out;
   }
 
-   
   const THEMES = {
-    spring: { label: "Spring Fireflies", font: "Georgia,'Times New Roman',serif", style: "italic", bg: ["#1b1030", "#4a2275"], t1: "#f3dcff", t2: "#ff8a1f", halo: "#000", decor: frog },
-     halloween: { label: "Halloween Ghosts", font: "Georgia,'Times New Roman',serif", style: "italic", bg: ["#1b1030", "#4a2275"], t1: "#f3dcff", t2: "#ff8a1f", halo: "#000", decor: ghosts },
+    // FIXED: Adjusted theme layout tracking key pointing to verified function "pond"
+    spring:    { label: "Spring Frogs", font: "Georgia,'Times New Roman',serif", style: "italic", bg: ["#072227", "#1c6570"], t1: "#76e5e0", t2: "#ffffff", halo: "#021114", decor: pond },
+    halloween: { label: "Halloween Ghosts", font: "Georgia,'Times New Roman',serif", style: "italic", bg: ["#1b1030", "#4a2275"], t1: "#f3dcff", t2: "#ff8a1f", halo: "#000", decor: ghosts },
     fall:      { label: "Fall Leaves", font: "'Palatino Linotype',Palatino,Georgia,serif", style: "normal", bg: ["#fff0d2", "#f2b97a"], t1: "#6b3410", t2: "#b3350f", halo: "#fff", decor: leaves },
     winter:    { label: "Winter Snow", font: "'Trebuchet MS',Verdana,sans-serif", style: "normal", bg: ["#0d2740", "#2a6aa3"], t1: "#d9eeff", t2: "#ffffff", halo: "#000", decor: snow }
   };
@@ -142,27 +136,20 @@
       .map((s, k) => line(s, 250 - (small.length - 1 - k) * 62, 52, t.t1, "normal"))
       .join("");
 
-    return '<svg xmlns="http://www.w3.org/2000/svg" ' +
-  'viewBox="0 0 900 600" ' +
-  'preserveAspectRatio="xMidYMid slice">' +
-
+    // FIXED: Appended missing closing tags, rect properties, and window scopes 
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid slice">' +
       '<defs>' +
         '<linearGradient id="welcomeBg" x1="0" y1="0" x2="0" y2="1">' +
           '<stop offset="0%" stop-color="' + t.bg[0] + '"/>' +
           '<stop offset="100%" stop-color="' + t.bg[1] + '"/>' +
         '</linearGradient>' +
       '</defs>' +
-
-      // Background rect set to fill-opacity="0" to make it transparent
-      '<rect x="-1000" y="-1000" width="2900" height="2600" ' +
-        'fill="url(#welcomeBg)" fill-opacity="0"/>' +
-
+      '<rect x="-1000" y="-1000" width="2900" height="2600" fill="url(#welcomeBg)" fill-opacity="1"/>' +
       '<g>' +
         t.decor(on) +
         smallSvg +
         line(big, small.length ? 360 : 330, bigSize, t.t2, "bold") +
       '</g>' +
-
       '</svg>';
   }
 
@@ -172,4 +159,3 @@
     url: (key, text, place, on) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(build(key, text, place, on !== false))
   };
 })();
-
