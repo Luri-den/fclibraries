@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Explore Connersville's Past</title>
+<title>Explore Franklin County</title>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 
 <style>
@@ -72,14 +72,38 @@ html,body{margin:0;height:100%;font-family:Arial,sans-serif}
 #panel h2{margin:8px 0 4px;font-size:19px}
 #panel h3{margin:12px 0 4px;font-size:15px}
 #x{position:absolute;right:8px;top:6px;font-size:26px;border:0;background:none;cursor:pointer}
+  #panel img {
+  display: block;
+  width: 100%;
+  height: auto;          /* let it scale naturally */
+  max-height: 45vh;      /* or whatever fits the panel */
+  object-fit: contain;   /* show the WHOLE image, letterbox if needed */
+  border-radius: 6px;
+}
 
 .kid{display:block;width:100%;text-align:left;padding:10px;margin:3px 0;border:1px solid #E47303;border-radius:6px;background:#fff;font-size:15px;cursor:pointer}
 .kid:hover{background:#fff8f0}
 
-@media(min-width:700px){
-  #panel{left:auto;width:380px;top:125px;bottom:auto;max-height:calc(100% - 140px);right:10px;border-radius:8px}
-}
+@media (min-width: 700px) {
+  #panel {
+    left: auto;
+    right: 10px;
+    top: 125px;
+    bottom: auto;
+    width: 380px;             /* or fit-content */
+    max-height: calc(100% - 140px);
+    overflow: auto;           /* keep for long captions */
+    border-radius: 8px;
+  }
 
+  #panel img {
+    width: 100%;
+    height: auto;
+    max-height: none;         /* panel's max-height governs */
+    object-fit: contain;
+    border-radius: 6px 6px 0 0;
+  }
+}
 /* WELCOME GIF INTRO */
 #welcomeOverlay{position:fixed;inset:0;z-index:99999;overflow:hidden;pointer-events:auto;background:transparent;cursor:pointer}
 #welcomeImage{position:absolute;max-width:100vw;max-height:100vh;width:auto;height:auto;user-select:none;-webkit-user-drag:none;left:var(--welcome-x,50%);top:var(--welcome-y,50%);transform:translate(-50%,calc(-50% + 110vh));transition:transform 650ms cubic-bezier(.22,.61,.36,1)}
@@ -2962,7 +2986,7 @@ function renderEventSwitcher(){
     lines.filter(Boolean).forEach(x => { const s = document.createElement("small"); s.textContent = x.text; if (x.live) s.className = "ev-nowtag"; a.appendChild(s); });
     parent.appendChild(a);
   };
-  add(box, "Main map", [], location.pathname + "?event=main", !EVENT_SLUG, false);
+  add(box, "Main Map", [], location.pathname + "?event=main", !EVENT_SLUG, false);
   const rank = { now: 0, soon: 1, later: 2, none: 3, ended: 4 };
   const rows = list.map(ev => ({ ev, st: evStatus(ev) || { state: "none" } }))
     .sort((a, b) => (rank[a.st.state] - rank[b.st.state]) || ((a.st.start || 0) - (b.st.start || 0)) || String(a.ev.name).localeCompare(String(b.ev.name)));
