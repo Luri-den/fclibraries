@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Explore Franklin County</title>
+<title>Explore Connersville's Past</title>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 
 <style>
 
-html,body{margin:0;height:100%;font-family:Arial,sans-serif} 
+html,body{margin:0;height:100%;font-family:Arial,sans-serif}
 
 #bar{position:absolute;z-index:5;top:0;left:0;right:0;background:var(--bar,#E47303);color:#fff;padding:calc(6px + env(safe-area-inset-top)) 10px 8px;display:flex;flex-direction:column;gap:6px}
 .bar-top{display:flex;justify-content:space-between;align-items:center}
@@ -67,43 +67,36 @@ html,body{margin:0;height:100%;font-family:Arial,sans-serif}
 #yticks em{position:absolute;top:8px;transform:translateX(-50%);font:normal 10px/1 Arial,sans-serif;color:#fff;white-space:nowrap}
 #tools label#ovw{flex:1 1 260px}   /* the label rule above would otherwise override the hidden attribute */
 
+/* ── FIX: removed the stray #panel rule that was overriding max-height (240px) and
+   applying object-fit to a non-replaced element. It also clamped the panel so the
+   gallery inside it got pushed out of view. See the note below the base rule. */
 #panel{position:absolute;z-index:6;left:0;right:0;bottom:0;max-height:55vh;overflow:auto;background:#fff;padding:12px 14px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -2px 8px #0005;box-sizing:border-box}
-#panel {width:100%;max-height:240px;object-fit:cover;border-radius:6px;cursor:zoom-in}
+
+/* ── FIX: the panel had NO rule for its cover <img>, so the browser rendered it at
+   natural size and the panel's overflow:auto sliced it. This targets only the cover
+   image (and any non-gallery image inside #panel) so .gal img keeps its own sizing. */
+#panel > img,
+#panel img:not(.gal img):not(.is-default){
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:45vh;
+  object-fit:cover;     /* change to contain to see the whole photo uncropped */
+  border-radius:6px;
+  cursor:zoom-in;
+}
+
 #panel h2{margin:8px 0 4px;font-size:19px}
 #panel h3{margin:12px 0 4px;font-size:15px}
 #x{position:absolute;right:8px;top:6px;font-size:26px;border:0;background:none;cursor:pointer}
-  #panel img {
-  display: block;
-  width: 100%;
-  height: auto;          /* let it scale naturally */
-  max-height: 45vh;      /* or whatever fits the panel */
-  object-fit: contain;   /* show the WHOLE image, letterbox if needed */
-  border-radius: 6px;
-}
 
 .kid{display:block;width:100%;text-align:left;padding:10px;margin:3px 0;border:1px solid #E47303;border-radius:6px;background:#fff;font-size:15px;cursor:pointer}
 .kid:hover{background:#fff8f0}
 
-@media (min-width: 700px) {
-  #panel {
-    left: auto;
-    right: 10px;
-    top: 125px;
-    bottom: auto;
-    width: 380px;             /* or fit-content */
-    max-height: calc(100% - 140px);
-    overflow: auto;           /* keep for long captions */
-    border-radius: 8px;
-  }
-
-  #panel img {
-    width: 100%;
-    height: auto;
-    max-height: none;         /* panel's max-height governs */
-    object-fit: contain;
-    border-radius: 6px 6px 0 0;
-  }
+@media(min-width:700px){
+  #panel{left:auto;width:380px;top:125px;bottom:auto;max-height:calc(100% - 140px);right:10px;border-radius:8px}
 }
+
 /* WELCOME GIF INTRO */
 #welcomeOverlay{position:fixed;inset:0;z-index:99999;overflow:hidden;pointer-events:auto;background:transparent;cursor:pointer}
 #welcomeImage{position:absolute;max-width:100vw;max-height:100vh;width:auto;height:auto;user-select:none;-webkit-user-drag:none;left:var(--welcome-x,50%);top:var(--welcome-y,50%);transform:translate(-50%,calc(-50% + 110vh));transition:transform 650ms cubic-bezier(.22,.61,.36,1)}
@@ -399,6 +392,27 @@ html,body{margin:0;height:100%;font-family:Arial,sans-serif}
 #imgView .caption{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);color:#fff;padding:12px;font-size:14px;text-align:center;border-radius:0 0 12px 12px;pointer-events:none}
 #imgView button.close-lightbox{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;background:none;border:0;cursor:pointer;z-index:99999}
 
+/* ── FIX: lightbox prev/next arrows ───────────────────────────────── */
+#imgView .lb-nav{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:52px;height:52px;border-radius:50%;
+  border:0;background:rgba(0,0,0,.55);color:#fff;
+  font-size:32px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  z-index:2;transition:background .15s;
+  padding:0;
+}
+#imgView .lb-nav:hover{background:rgba(0,0,0,.8)}
+#imgView .lb-prev{left:16px}
+#imgView .lb-next{right:16px}
+#imgView .lb-nav[hidden]{display:none}
+@media (max-width:640px){
+  #imgView .lb-nav{width:44px;height:44px;font-size:26px}
+  #imgView .lb-prev{left:8px}
+  #imgView .lb-next{right:8px}
+}
+/* ─────────────────────────────────────────────────────────────────── */
+
 /* Shared still+video wrapper used in the spot card and tour card */
 .photo-anim{position:relative;display:block;line-height:0}
 .photo-anim img{width:100%;display:block;border-radius:6px}
@@ -421,7 +435,7 @@ html,body{margin:0;height:100%;font-family:Arial,sans-serif}
 <body>
 
 <div id="welcomeOverlay" role="button" aria-label="Skip welcome introduction">
-  <img id="welcomeImage" alt="Explore">
+  <img id="welcomeImage" alt="Discover Historic Connersville">
   <div id="welcomeSite" hidden>
     <svg id="wsLine"></svg>
     <img id="wsPhoto" alt="">
@@ -458,7 +472,7 @@ html,body{margin:0;height:100%;font-family:Arial,sans-serif}
 
 <div id="bar">
   <div class="bar-top">
-    <h1>Explore</h1>
+    <h1>Discover Connersville's Past</h1>
     <button id="passportBtn" type="button">🏆 <span id="passportCount">0/0</span> Found</button>
   </div>
   <input id="q" type="search" placeholder="Search places..." aria-label="Search places">
@@ -529,6 +543,9 @@ html,body{margin:0;height:100%;font-family:Arial,sans-serif}
   <div class="stage">
     <img id="lightboxImg" alt="">
     <video id="lightboxVid" muted playsinline preload="metadata" hidden></video>
+    <!-- ── FIX: prev/next arrows (hidden by JS when there's only one photo) -->
+    <button type="button" class="lb-nav lb-prev" aria-label="Previous photo">&#8249;</button>
+    <button type="button" class="lb-nav lb-next" aria-label="Next photo">&#8250;</button>
     <div class="caption" style="display:none"></div>
   </div>
 </div>
@@ -867,7 +884,7 @@ const SITE = {
       ]
     }
   ],
-  memoryUrl: "mailto:example@example.org",
+  memoryUrl: "mailto:connersville@example.org",
   files: {
     locations: "locations.csv",
     children: "childmarkers.csv",
@@ -2227,13 +2244,37 @@ $("res").onclick = e => {
   const imgEl   = document.getElementById("lightboxImg");
   const vidEl   = document.getElementById("lightboxVid");
   const caption = view.querySelector(".caption");
+  // ── FIX: grab the arrow buttons we added to the markup
+  const prevBtn = view.querySelector(".lb-prev");
+  const nextBtn = view.querySelector(".lb-next");
 
+  // ── FIX: the lightbox now holds a group of photos + an index, so < > can step through them.
+  let group = [];
+  let gi = 0;
   let currentSrc = null;
   let playing    = false;
 
   function animPathFor(photoSrc) {
     const m = /(?:^|\/)([^/]+)\.(jpe?g|png|webp)$/i.exec(photoSrc || "");
     return m ? assetUrl("anims/" + m[1] + ".mp4") : null;
+  }
+
+  // ── FIX: collect every real photo in the same card as the one that was clicked.
+  // Icons (is-default) and duplicated sources are skipped. Order matches DOM order,
+  // so the cover comes first, then the gallery shots.
+  function collectGroup(im) {
+    const holder = im.closest("#panel, #spotCard, #tourCard");
+    if (!holder) return [im];
+    const seen = new Set();
+    const out = [];
+    holder.querySelectorAll("img").forEach(x => {
+      if (x.classList.contains("is-default")) return;
+      const src = x.currentSrc || x.src;
+      if (!src || seen.has(src)) return;
+      seen.add(src);
+      out.push(x);
+    });
+    return out.length ? out : [im];
   }
 
   function closeView() {
@@ -2244,23 +2285,31 @@ $("res").onclick = e => {
     imgEl.removeAttribute("src");
     currentSrc = null;
     playing = false;
+    group = [];
+    gi = 0;
   }
 
-  function openLightbox(photoSrc, fallbackSrc, text) {
-    imgEl.src = photoSrc;
-    imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = fallbackSrc; };
+  // ── FIX: show the photo at index i (wraps around), with its own caption and optional anim video
+  function showAt(i) {
+    if (!group.length) return;
+    gi = (i + group.length) % group.length;
 
-    caption.textContent = text || "";
+    const im = group[gi];
+    const photo = im.currentSrc || im.src;
+    imgEl.src = photo;
+    imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = photo; };
+    currentSrc = photo;
+
+    const text = im.dataset.caption || "";
+    caption.textContent = text;
     caption.style.display = text ? "block" : "none";
 
     vidEl.hidden = true;
     vidEl.pause();
+    vidEl.removeAttribute("src");
     playing = false;
 
-    view.hidden = false;
-    currentSrc = photoSrc;
-
-    const anim = animPathFor(photoSrc);
+    const anim = animPathFor(photo);
     if (anim) {
       vidEl.onloadeddata = () => {
         vidEl.hidden = false;
@@ -2272,22 +2321,58 @@ $("res").onclick = e => {
       vidEl.src = anim;
       vidEl.load();
     }
+
+    const multi = group.length > 1;
+    prevBtn.hidden = !multi;
+    nextBtn.hidden = !multi;
   }
 
+  // ── FIX: openLightbox is now list + index aware. Kept backward-compatible:
+  // if something else calls it with a single src string, we wrap it as a one-item group.
+  function openLightbox(listOrSrc, indexOrFallback, text) {
+    if (Array.isArray(listOrSrc)) {
+      group = listOrSrc;
+      const cap = (group[indexOrFallback] && group[indexOrFallback].dataset.caption) || text || "";
+      view.hidden = false;
+      showAt(indexOrFallback);
+      // If showAt fell back to the element's dataset caption, the passed text is a better default
+      if (!group[gi].dataset.caption && cap) {
+        caption.textContent = cap;
+        caption.style.display = cap ? "block" : "none";
+      }
+    } else {
+      // Backward-compat: single src path used by anything that hasn't been updated
+      group = [];
+      const fake = { currentSrc: listOrSrc, src: listOrSrc, dataset: { caption: text || "" }, classList: { contains: () => false } };
+      group = [fake];
+      view.hidden = false;
+      showAt(0);
+    }
+  }
+
+  // ── FIX: build a group from the clicked image's card and pass it through
   document.addEventListener("click", e => {
     const im = e.target.closest("#panel img, #spotCard img, #tourCard img, .photo-anim img");
     if (!im) return;
-    const raw = im.getAttribute("src");
     if (im.classList.contains("is-default")) return;   // icons don't open the lightbox
 
     e.preventDefault();
     e.stopPropagation();
 
-    const shown = im.currentSrc || im.src;
-    const photo = shown;
     const holder = im.closest("#panel, #spotCard, #tourCard");
     const h2 = holder && holder.querySelector("h2");
-    openLightbox(photo, shown, im.dataset.caption || (h2 ? h2.textContent : ""));
+    const fallbackCaption = im.dataset.caption || (h2 ? h2.textContent : "");
+
+    // If the click landed inside the tour card's .photo-anim wrapper, only that one photo
+    // is "in the group" for the tour card, since the tour card shows one stop at a time.
+    if (holder && holder.id === "tourCard") {
+      openLightbox([im], 0, fallbackCaption);
+      return;
+    }
+
+    const grp = collectGroup(im);
+    const idx = grp.indexOf(im);
+    openLightbox(grp, idx < 0 ? 0 : idx, fallbackCaption);
   });
 
   view.addEventListener("click", () => {
@@ -2300,8 +2385,15 @@ $("res").onclick = e => {
     closeView();
   });
 
+  // ── FIX: arrow button handlers (stopPropagation so the backdrop click doesn't also close)
+  prevBtn.addEventListener("click", e => { e.stopPropagation(); showAt(gi - 1); });
+  nextBtn.addEventListener("click", e => { e.stopPropagation(); showAt(gi + 1); });
+
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape" && !view.hidden) { closeView(); e.stopPropagation(); }
+    if (e.key === "Escape" && !view.hidden) { closeView(); e.stopPropagation(); return; }
+    if (view.hidden) return;
+    if (e.key === "ArrowLeft")  { showAt(gi - 1); e.stopPropagation(); }
+    if (e.key === "ArrowRight") { showAt(gi + 1); e.stopPropagation(); }
   }, true);
 
   const _q = new URLSearchParams(location.search);
@@ -2986,7 +3078,7 @@ function renderEventSwitcher(){
     lines.filter(Boolean).forEach(x => { const s = document.createElement("small"); s.textContent = x.text; if (x.live) s.className = "ev-nowtag"; a.appendChild(s); });
     parent.appendChild(a);
   };
-  add(box, "Main Map", [], location.pathname + "?event=main", !EVENT_SLUG, false);
+  add(box, "Main map", [], location.pathname + "?event=main", !EVENT_SLUG, false);
   const rank = { now: 0, soon: 1, later: 2, none: 3, ended: 4 };
   const rows = list.map(ev => ({ ev, st: evStatus(ev) || { state: "none" } }))
     .sort((a, b) => (rank[a.st.state] - rank[b.st.state]) || ((a.st.start || 0) - (b.st.start || 0)) || String(a.ev.name).localeCompare(String(b.ev.name)));
