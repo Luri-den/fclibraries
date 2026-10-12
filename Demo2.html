@@ -2217,23 +2217,41 @@ $("res").onclick = e => {
   }, true);
 
   const _q = new URLSearchParams(location.search);
-  if (!_q.has("spot") && !_q.has("site")) {
-    let tries = 0;
-    const t = setInterval(() => {
-      if (!places.length && ++tries <= 50) return;
-      clearInterval(t);
-      if (!places.length) return;
-      if (!SITE.fitMarkers) return;
-      const b = new maplibregl.LngLatBounds();
-      places.forEach(p => b.extend(p.ll));
-      const cam = map.cameraForBounds(b, { padding: { top: 160, bottom: 60, left: 40, right: 40 }, maxZoom: 15 });
-      if (!cam) return;
-      SITE.center = [cam.center.lng, cam.center.lat];
-      SITE.zoom = cam.zoom;
-      map.jumpTo({ center: SITE.center, zoom: SITE.zoom });
-    }, 100);
-  }
+if (!_q.has("spot") && !_q.has("site")) {
+  const fitMarkers = () => {
+    if (!places.length || !SITE.fitMarkers) return;
+    const b = new maplibregl.LngLatBounds();
+    places.forEach(p => b.extend(p.ll));
+    if (b.isEmpty()) return;
 
+    // Take the panel, chips, and header into account.
+    const barH    = ($("bar")   && $("bar").offsetHeight)   || 160;
+    const chipH   = ($("catChipsWrap") && !$("catChipsWrap").hidden && $("catChipsWrap").offsetHeight) || 0;
+    const topPad  = barH + chipH + 20;
+    // On mobile the panel sits at the bottom; leave room for it.
+    const bottomPad = matchMedia("(max-width: 699px)").matches ? 60 : 60;
+
+    const cam = map.cameraForBounds(b, {
+      padding: { top: topPad, bottom: bottomPad, left: 40, right: 40 },
+      maxZoom: 16
+    });
+    if (!cam) return;
+    SITE.center = [cam.center.lng, cam.center.lat];
+    SITE.zoom = cam.zoom;
+    map.jumpTo({ center: SITE.center, zoom: SITE.zoom });
+  };
+
+  // First fit as soon as places exist; second fit after layout settles.
+  let tries = 0;
+  const t = setInterval(() => {
+    if (!places.length && ++tries <= 50) return;
+    clearInterval(t);
+    if (!places.length) return;
+    fitMarkers();
+    // And once more after the bar has had time to lay out fully.
+    setTimeout(fitMarkers, 900);
+  }, 100);
+}
   window.openLightbox = openLightbox;
 })();
 
