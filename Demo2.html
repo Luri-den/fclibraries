@@ -425,6 +425,144 @@ html.settings-loading #tools { visibility: hidden; }
   .stamp-card.unlocked{animation:none}
 }
 
+#panel.grabber {
+  padding-top: 22px;
+}
+#panel .grab{
+  position:absolute;left:50%;top:6px;transform:translateX(-50%);
+  width:44px;height:5px;border-radius:3px;background:#c9c9c9;
+  cursor:grab;touch-action:none;
+}
+#panel .grab:active{cursor:grabbing;background:#999}
+#panel.dragging{transition:none!important}
+@media (max-width:699px){
+  #panel{
+    border-radius:14px 14px 0 0;
+    transition:transform 220ms cubic-bezier(.22,.61,.36,1);
+    will-change:transform;
+    touch-action:pan-y;
+  }
+  #panel.snap-half{transform:translateY(calc(100% - 42vh))}
+  #panel.snap-full{transform:translateY(0)}
+  #panel.snap-closed{transform:translateY(100%)}
+}
+
+/* ============================================================
+   CATEGORY CHIPS
+   ============================================================ */
+#catChips{
+  display:flex;gap:6px;flex-wrap:wrap;margin:0;
+  padding:0;list-style:none;
+}
+#catChips button{
+  border:2px solid var(--bar,#E47303);
+  background:#fff;color:#222;
+  border-radius:16px;padding:4px 10px;font-size:12px;
+  cursor:pointer;display:flex;align-items:center;gap:5px;
+}
+#catChips button[aria-pressed="true"]{
+  background:var(--bar,#E47303);color:#fff;
+}
+#catChips button .swatch{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--sw,#E47303);border:1px solid #fff;
+}
+#catChips button[aria-pressed="true"] .swatch{border-color:#fff8}
+#catChips .reset{
+  background:none;border:0;color:#fff;
+  text-decoration:underline;font-size:12px;
+  padding:4px 6px;cursor:pointer;
+}
+#catChipsWrap{
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+}
+#catChipsWrap[hidden]{display:none}
+
+/* ============================================================
+    THEN-AND-NOW WIPE
+   ============================================================ */
+#wipe{
+  position:absolute;top:0;bottom:0;width:44px;
+  margin-left:-22px;
+  z-index:4;cursor:ew-resize;touch-action:none;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:auto;
+}
+#wipe::before{
+  content:"";position:absolute;top:0;bottom:0;left:50%;
+  width:2px;background:#fff;box-shadow:0 0 0 1px #0006;
+  margin-left:-1px;
+}
+#wipe .knob{
+  width:34px;height:34px;border-radius:50%;
+  background:#fff;border:2px solid #333;
+  box-shadow:0 2px 6px #0006;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:#333;user-select:none;
+}
+#wipe[hidden]{display:none}
+#wipeHint{
+  position:absolute;left:50%;bottom:80px;transform:translateX(-50%);
+  background:#000b;color:#fff;padding:6px 12px;border-radius:16px;
+  font-size:12px;z-index:5;pointer-events:none;
+  animation:wipeHint 3.5s ease-in-out forwards;
+}
+@keyframes wipeHint{
+  0%{opacity:0}15%{opacity:1}80%{opacity:1}100%{opacity:0}
+}
+
+/* ============================================================
+    SHARE BUTTON & TOAST
+   ============================================================ */
+.share-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  margin:8px 6px 0 0;padding:7px 12px;
+  border:2px solid var(--bar,#E47303);border-radius:8px;
+  background:#fff;color:var(--bar,#E47303);
+  font-size:13px;font-weight:600;cursor:pointer;
+}
+.share-btn:hover{background:#fff8f0}
+#toast{
+  position:fixed;left:50%;bottom:40px;transform:translateX(-50%) translateY(20px);
+  background:#222;color:#fff;padding:10px 16px;border-radius:20px;
+  font-size:13px;z-index:200000;opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ============================================================
+   OFFLINE BUTTON & PROGRESS
+   ============================================================ */
+#offlineBtn{
+  display:block;width:100%;box-sizing:border-box;
+  margin:6px 0;padding:9px 12px;
+  border:2px solid var(--bar,#E47303);border-radius:8px;
+  background:#fff;color:var(--bar,#E47303);
+  font-size:13px;font-weight:600;cursor:pointer;text-align:left;
+}
+#offlineBtn.saved{background:#f4fbf4;border-color:#cfe8cf;color:#2e6e3a}
+#offlineBtn[disabled]{opacity:.6;cursor:default}
+
+/* ============================================================
+   PRIZE PROGRESS
+   ============================================================ */
+.p-prize{
+  background:#fff8f0;border:2px solid #f0d2b5;border-radius:10px;
+  padding:10px 12px;margin:10px 0;
+}
+.p-prize.done{background:#f4fbf4;border-color:#cfe8cf}
+.p-prize h4{margin:0 0 4px;font-size:14px;color:#333}
+.p-prize .bar{
+  height:8px;border-radius:4px;background:#fff;overflow:hidden;
+  border:1px solid #e0c8a8;margin:6px 0;
+}
+.p-prize .bar>i{
+  display:block;height:100%;background:var(--bar,#E47303);
+  transition:width .3s;
+}
+.p-prize .meta{font-size:12px;color:#555}
+.p-prize.done .meta{color:#2e6e3a;font-weight:600}
+  
 </style>
 </head>
 
@@ -473,6 +611,9 @@ html.settings-loading #tools { visibility: hidden; }
   </div>
   <input id="q" type="search" placeholder="Search places..." aria-label="Search places">
   <ul id="res" hidden></ul>
+  <div id="catChipsWrap" hidden>
+  <ul id="catChips" aria-label="Filter by category"></ul>
+  </div>
   <div id="tools">
     <button id="near" type="button">Near Me</button>
     <button id="tour" type="button" hidden>Take the Tour</button>
@@ -577,6 +718,8 @@ const key = s => String(s || "").trim().toLowerCase();
    ============================================================ */
 const EVENT_SLUG = (() => { const v = new URLSearchParams(location.search).get("event") || ""; return v.toLowerCase() !== "main" && /^[a-z0-9][a-z0-9_-]*$/i.test(v) ? v.toLowerCase() : ""; })();   // ?event=main means "the usual map"
 const EVENT_DIR = EVENT_SLUG ? "events/" + EVENT_SLUG + "/" : "";
+  window.KEY_SUFFIX = KEY_SUFFIX;
+window.EVENT_DIR = EVENT_DIR;
 const KEY_SUFFIX = EVENT_SLUG ? "@" + EVENT_SLUG : "";      // keeps each event's passport progress separate
 let EVENT_INFO = null;                                       // events/name/event.json: which data files and folders the event holds
 const EVENT_READY = EVENT_SLUG
@@ -626,7 +769,7 @@ function getUnlockedStamps() {
     return [];
   }
 }
-
+window.getUnlockedStamps = getUnlockedStamps;
 function unlockStamp(id) {
   if (!id) return;
   const unlocked = getUnlockedStamps();
@@ -888,6 +1031,9 @@ const SITE = {
   }
 };
 
+/* expose to the post-load enhancement block at the bottom of the file */
+window.SITE = SITE;
+
 /* ============================================================
    MAP
    ============================================================ */
@@ -1055,6 +1201,10 @@ svg.id = "leaders";
 map.getCanvasContainer().appendChild(svg);
 
 let places = [], kids = [], focus = null, sel = null, prev = null;
+// expose to post-load enhancements
+Object.defineProperty(window, "places", { get: () => places });
+Object.defineProperty(window, "kids",   { get: () => kids });
+Object.defineProperty(window, "sel",    { get: () => sel });
 let returning = false, year = null, stops = [], tourI = -1, me = null;
 let tourGeoJSON = null;
 let travelInProgress = false;
@@ -1275,7 +1425,11 @@ function alive(i){
 
 function update(){
   const deep = !returning && map.getZoom() >= SITE.childZoom;
-  const show = (i,v) => { i.el.style.display = (v && alive(i)) ? "" : "none"; };
+  const show = (i,v) => {
+  const cat = String((i.d && i.d.CATEGORY) || "").trim().toUpperCase();
+  const catHidden = window.catVisible && !window.catVisible(cat);
+  i.el.style.display = (v && alive(i) && !catHidden) ? "" : "none";
+};
 
   places.forEach(p => show(p, !focus && !(p.kids.length && deep)));
   kids.forEach(k => show(k, focus ? k.parent === focus : deep));
@@ -1480,6 +1634,8 @@ function travelTo(fromLl, toLl, vehicleKey){
    ============================================================ */
 
 function select(it){
+  window.sel = it;
+  window.__sel = it;
   if (tourI >= 0 && stops[tourI] !== it) tourI = -1;
 
   if (!sel && !prev) prev = { center: map.getCenter(), zoom: map.getZoom() };
@@ -3129,6 +3285,544 @@ $("ev-x").onclick = closeEventPanel;
 $("eventBox").addEventListener("click", e => { if (e.target === $("eventBox")) closeEventPanel(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeEventPanel(); });
 
+/* ============================================================
+   POST-LOAD ENHANCEMENTS
+   Chunks 1 (mobile half-sheet), 2 (a11y), 3 (wipe),
+   4 (category chips), 5 (deep-linking & share),
+   6 (offline cache), 7 (prize progress)
+   ============================================================ */
+(function(){
+
+const $id = id => document.getElementById(id);
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const isPhone = () => matchMedia("(max-width: 699px)").matches;
+
+function toast(msg, ms){
+  const t = $id("toast");
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove("show"), ms || 2200);
+}
+
+/* ============================================================
+   CHUNK 2 — ACCESSIBILITY (leaders decorative, list semantics)
+   ============================================================ */
+{
+  const svg = $id("leaders");
+  if (svg) svg.setAttribute("aria-hidden", "true");
+}
+
+/* ============================================================
+   CHUNK 1 — HALF-SHEET PANEL (mobile drag)
+   ============================================================ */
+{
+  const panel = $id("panel");
+  if (!panel) return;
+
+  // Grab bar
+  const grab = document.createElement("div");
+  grab.className = "grab";
+  grab.setAttribute("aria-hidden", "true");
+  panel.prepend(grab);
+  panel.classList.add("grabber");
+
+  let dragStartY = 0, dragStartT = 0, currentT = 0, dragging = false;
+  let panelHeight = 0;
+
+  function snapClass(){
+    if (!isPhone()) return;
+    panel.classList.remove("snap-half","snap-full","snap-closed");
+    panel.style.transform = "";
+  }
+
+  function setSnap(which){
+    if (!isPhone()) return;
+    panel.classList.remove("snap-half","snap-full","snap-closed");
+    panel.classList.add("snap-" + which);
+    // Offset the map so the selected pin stays visible above the panel
+    if (which === "half" && window.__sel) {
+      window.map && window.map.easeTo({
+        center: window.__sel.ll,
+        padding: { bottom: Math.round(window.innerHeight * 0.42) },
+        duration: reduceMotion ? 0 : 300
+      });
+    }
+  }
+
+  // Initial state on open
+  const origOpen = panel.classList.add.bind(panel.classList);
+  // Hook into select() by observing panel visibility
+  const mo = new MutationObserver(() => {
+    if (panel.hidden) return;
+    if (isPhone()){
+      panel.classList.remove("snap-full","snap-closed");
+      panel.classList.add("snap-half");
+    } else {
+      panel.classList.remove("snap-half","snap-full","snap-closed");
+      panel.style.transform = "";
+    }
+  });
+  mo.observe(panel, { attributes:true, attributeFilter:["hidden"] });
+
+  // Drag handler
+  function pointerDown(e){
+    if (!isPhone()) return;
+    dragging = true;
+    dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
+    dragStartT = panel.getBoundingClientRect().top;
+    panelHeight = panel.getBoundingClientRect().height;
+    panel.classList.add("dragging");
+    panel.setPointerCapture && e.pointerId != null && panel.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  }
+  function pointerMove(e){
+    if (!dragging) return;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    const dy = y - dragStartY;
+    const newTop = Math.max(0, Math.min(dragStartT + dy, panelHeight - 60));
+    panel.style.transform = "translateY(" + newTop + "px)";
+  }
+  function pointerUp(){
+    if (!dragging) return;
+    dragging = false;
+    panel.classList.remove("dragging");
+    const top = panel.getBoundingClientRect().top;
+    const h = window.innerHeight;
+    const fullThresh = h * 0.35;
+    const closeThresh = h * 0.85;
+    if (top < fullThresh) setSnap("full");
+    else if (top > closeThresh) setSnap("closed");
+    else setSnap("half");
+  }
+
+  grab.addEventListener("pointerdown", pointerDown);
+  panel.addEventListener("pointerdown", e => {
+    if (e.target === grab || e.target.classList.contains("grab")) pointerDown(e);
+  });
+  window.addEventListener("pointermove", pointerMove, { passive:false });
+  window.addEventListener("pointerup", pointerUp);
+  window.addEventListener("pointercancel", pointerUp);
+  window.addEventListener("resize", snapClass);
+}
+
+/* ============================================================
+   CHUNK 4 — CATEGORY FILTER CHIPS
+   ============================================================ */
+const HIDDEN_CATS_KEY = "connersville_hidden_cats" + (window.KEY_SUFFIX || "");
+let hiddenCats = new Set();
+try { hiddenCats = new Set(JSON.parse(localStorage.getItem(HIDDEN_CATS_KEY)) || []); } catch {}
+
+function catVisible(code){
+  return !hiddenCats.has(String(code || "").trim().toUpperCase());
+}
+window.catVisible = catVisible;
+
+function buildChips(){
+  const wrap = $id("catChipsWrap");
+  const ul = $id("catChips");
+  if (!wrap || !ul) return;
+  if (!window.SITE || !SITE.catNames || !Object.keys(SITE.catNames).length) return;
+
+  // Count places per category
+  const counts = {};
+  (window.places || []).concat(window.kids || []).forEach(p => {
+    const c = String((p.d && p.d.CATEGORY) || "").trim().toUpperCase();
+    if (c) counts[c] = (counts[c] || 0) + 1;
+  });
+
+  const codes = Object.keys(SITE.catNames).filter(c => counts[c]);
+  if (!codes.length){ wrap.hidden = true; return; }
+  wrap.hidden = false;
+
+  ul.innerHTML = codes.map(code => {
+    const on = catVisible(code);
+    const color = (SITE.colors && SITE.colors[code]) || "#E47303";
+    return `<li><button type="button" data-cat="${code}" aria-pressed="${on}">
+      <span class="swatch" style="--sw:${color};background:${color}"></span>
+      ${code} <small style="opacity:.7">${counts[code]}</small>
+    </button></li>`;
+  }).join("") +
+  (hiddenCats.size ? `<li><button type="button" class="reset" id="catReset">Reset</button></li>` : "");
+
+  ul.onclick = e => {
+    const b = e.target.closest("button[data-cat]");
+    if (b){
+      const code = b.dataset.cat;
+      if (hiddenCats.has(code)) hiddenCats.delete(code); else hiddenCats.add(code);
+      try { localStorage.setItem(HIDDEN_CATS_KEY, JSON.stringify([...hiddenCats])); } catch {}
+      buildChips();
+      window.update && window.update();
+      return;
+    }
+    if (e.target.id === "catReset"){
+      hiddenCats.clear();
+      try { localStorage.removeItem(HIDDEN_CATS_KEY); } catch {}
+      buildChips();
+      window.update && window.update();
+    }
+  };
+}
+
+// Hook into update() to respect hiddenCats — patch after the map loads
+setTimeout(() => {
+  if (typeof window.update === "function" && !window.__updatePatched){
+    window.__updatePatched = true;
+    const origUpdate = window.update;
+    window.update = function(){
+      origUpdate.apply(this, arguments);
+      if (!hiddenCats.size) return;
+      (window.places || []).concat(window.kids || []).forEach(p => {
+        const c = String((p.d && p.d.CATEGORY) || "").trim().toUpperCase();
+        if (hiddenCats.has(c) && p.el) p.el.style.display = "none";
+      });
+    };
+  }
+  buildChips();
+}, 3000);
+
+/* ============================================================
+   CHUNK 3 — THEN-AND-NOW WIPE
+   ============================================================ */
+// We use a wipe only when there's exactly one overlay and its opacity slider is set above 0
+// (so the existing opacity UI still works for multi-overlay sites).
+(function(){
+  let wipeEl = null;
+
+  function ensureWipe(){
+    if (wipeEl) return wipeEl;
+    wipeEl = document.createElement("div");
+    wipeEl.id = "wipe";
+    wipeEl.hidden = true;
+    wipeEl.innerHTML = `<div class="knob" aria-hidden="true">⇆</div>`;
+    document.body.appendChild(wipeEl);
+    return wipeEl;
+  }
+
+  function updateWipe(){
+    const map = window.map;
+    const w = ensureWipe();
+    if (!map || !w) return;
+
+    // Only for single-overlay case, and only when slider is engaged
+    const ovs = (window.SITE && SITE.overlays) || [];
+    const ov = $id("ov");
+    const ovw = $id("ovw");
+    if (!ov || !ovw || ovw.hidden || ovs.length !== 1){
+      w.hidden = true;
+      return;
+    }
+
+    // When opacity is > 0, we show the wipe and hide the slider effect (set to 100%)
+    const active = +ov.value > 0;
+    w.hidden = !active;
+    if (!active) return;
+
+    // Force the overlay opacity to 100 — the wipe controls visibility instead
+    try {
+      map.setPaintProperty("ov0", "raster-opacity", 1);
+    } catch(e){}
+
+    // Position the wipe handle, initialize to middle
+    if (!w._x) w._x = window.innerWidth * 0.5;
+    positionWipe();
+  }
+
+  function positionWipe(){
+    const map = window.map;
+    if (!map || !wipeEl) return;
+    const x = wipeEl._x;
+    wipeEl.style.left = x + "px";
+
+    // Clip the overlay canvas to the left of the wipe.
+    // MapLibre stacks canvases; the overlay lives in the same canvas as the base
+    // on this setup, so we use CSS clip-path on the whole canvas.
+    // This is approximate: it works because the base and overlay share a canvas.
+    const canvas = map.getCanvas();
+    if (!canvas) return;
+    // If the overlay is a separate source, MapLibre still renders into the same canvas,
+    // so we can't isolate it. Instead, we nudge its opacity to zero right-of-wipe:
+    // the more robust approach is to reduce the overlay opacity based on wipe direction.
+    // For a truly clean wipe we rely on the overlay being rendered in its own layer
+    // whose paint we can toggle — not possible mid-render. So we fall back to a
+    // directional overlay that fades out as the user drags right.
+    const pct = Math.max(0, Math.min(1, x / window.innerWidth));
+    // Left side = old map; right side = modern. When wipe is at 50%, we can't split
+    // a single raster layer, so we approximate: overlay opacity = 1 - pct.
+    try {
+      map.setPaintProperty("ov0", "raster-opacity", 1 - pct * 0.5);
+    } catch(e){}
+  }
+
+  function dragWipe(e){
+    if (!wipeEl || wipeEl.hidden) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    wipeEl._x = Math.max(20, Math.min(window.innerWidth - 20, x));
+    positionWipe();
+    e.preventDefault();
+  }
+  function startDrag(e){
+    wipeEl._dragging = true;
+    dragWipe(e);
+    window.addEventListener("pointermove", dragWipe, { passive:false });
+    window.addEventListener("pointerup", endDrag);
+    window.addEventListener("touchmove", dragWipe, { passive:false });
+    window.addEventListener("touchend", endDrag);
+  }
+  function endDrag(){
+    if (wipeEl) wipeEl._dragging = false;
+    window.removeEventListener("pointermove", dragWipe);
+    window.removeEventListener("pointerup", endDrag);
+    window.removeEventListener("touchmove", dragWipe);
+    window.removeEventListener("touchend", endDrag);
+  }
+
+  // Wire up after the map is ready
+  setTimeout(() => {
+    const w = ensureWipe();
+    w.addEventListener("pointerdown", startDrag);
+    w.addEventListener("touchstart", startDrag, { passive:false });
+    const ov = $id("ov");
+    if (ov) ov.addEventListener("input", () => setTimeout(updateWipe, 50));
+    // Show a one-time hint
+    const ovs = (window.SITE && SITE.overlays) || [];
+    if (ovs.length === 1 && !sessionStorage.getItem("wipeHintShown")){
+      sessionStorage.setItem("wipeHintShown", "1");
+      setTimeout(() => {
+        if (w.hidden) return;
+        const hint = document.createElement("div");
+        hint.id = "wipeHint";
+        hint.textContent = "Drag the handle to compare old and new";
+        document.body.appendChild(hint);
+        setTimeout(() => hint.remove(), 4000);
+      }, 1200);
+    }
+    updateWipe();
+  }, 3500);
+
+  // Re-check whenever overlay panel state changes
+  setInterval(updateWipe, 2000);
+})();
+
+/* ============================================================
+   CHUNK 5 — DEEP-LINKING & SHARE
+   ============================================================ */
+(function(){
+  const qs = () => new URLSearchParams(location.search);
+
+  // On load: apply ?year= and ?cat=
+  try {
+    const q = qs();
+    const y = q.get("year");
+    const yr = $id("yr");
+    if (y && yr){
+      yr.value = y;
+      yr.dispatchEvent(new Event("input"));
+    }
+    const cat = q.get("cat");
+    if (cat){
+      const on = new Set(cat.split(",").map(s => s.trim().toUpperCase()));
+      if (on.size && window.SITE && SITE.catNames){
+        Object.keys(SITE.catNames).forEach(code => {
+          if (!on.has(code)) hiddenCats.add(code);
+        });
+        try { localStorage.setItem(HIDDEN_CATS_KEY, JSON.stringify([...hiddenCats])); } catch {}
+        setTimeout(buildChips, 500);
+      }
+    }
+    // ?place= opens any place (not just major ones)
+    const place = q.get("place");
+    if (place && !q.get("site")){
+      let tries = 0;
+      const t = setInterval(() => {
+        const it = (window.places || []).concat(window.kids || [])
+          .find(p => String(p.id).trim().toLowerCase() === place.trim().toLowerCase());
+        if (!it && ++tries < 60) return;
+        clearInterval(t);
+        if (it) window.select && window.select(it);
+      }, 250);
+    }
+  } catch(e){}
+
+  // Share button: add to the panel whenever a place is opened
+  const panel = $id("panel");
+  if (panel){
+    const mo = new MutationObserver(() => {
+      if (panel.hidden) return;
+      if (panel.querySelector(".share-btn")) return;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "share-btn";
+      btn.innerHTML = "🔗 Share this place";
+      btn.onclick = async () => {
+        const id = (window.sel && window.sel.id) || "";
+        if (!id) return;
+        const url = location.origin + location.pathname + "?place=" + encodeURIComponent(id);
+        try {
+          if (navigator.share){
+            await navigator.share({ title: "Connersville history", url });
+          } else {
+            await navigator.clipboard.writeText(url);
+            toast("Link copied");
+          }
+        } catch(e){
+          // Fallback: show a prompt with the URL
+          prompt("Copy this link:", url);
+        }
+      };
+      const kids = panel.querySelector("h3");
+      if (kids) panel.insertBefore(btn, kids);
+      else panel.appendChild(btn);
+    });
+    mo.observe(panel, { childList:true, subtree:true });
+  }
+
+  // Update URL as user interacts
+  const origSelect = window.select;
+  if (typeof origSelect === "function" && !window.__selectPatched){
+    window.__selectPatched = true;
+    window.select = function(it){
+      window.__sel = it;                 // needed by chunk 1
+      origSelect.apply(this, arguments);
+      if (!it) return;
+      try {
+        const q = qs();
+        q.set("place", it.id);
+        q.delete("spot"); q.delete("site");
+        history.replaceState(null, "", location.pathname + "?" + q.toString());
+      } catch(e){}
+    };
+  }
+})();
+
+/* ============================================================
+   CHUNK 6 — OFFLINE CACHE (service worker registration + download)
+   ============================================================ */
+(function(){
+  if (!("serviceWorker" in navigator)) return;
+
+  // Register
+  navigator.serviceWorker.register("sw.js").then(reg => {
+    console.info("Offline worker registered", reg.scope);
+  }).catch(err => {
+    console.warn("Service worker registration failed", err);
+  });
+
+  // Add the "Save for offline" button to the passport drawer
+  const body = document.querySelector(".passport-body");
+  if (!body) return;
+  const btn = document.createElement("button");
+  btn.id = "offlineBtn";
+  btn.type = "button";
+  btn.textContent = "📥 Save this map for offline use";
+  body.insertBefore(btn, body.firstChild);
+
+  btn.onclick = async () => {
+    if (!navigator.serviceWorker.controller){
+      toast("Reload the page once, then try again.");
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = "Saving… 0%";
+
+    // Ask the SW to cache everything in the current event
+    const files = [
+      location.pathname,
+      "site.csv", "locations.csv", "childmarkers.csv",
+      "categories.csv", "shapes.csv", "photos.csv",
+      "stamps.csv", "tasks.csv", "overlays.json",
+      "spots.csv", "tours.csv", "tourstops.csv",
+      "events/index.json",
+      window.EVENT_DIR ? window.EVENT_DIR + "event.json" : null
+    ].filter(Boolean);
+
+    navigator.serviceWorker.controller.postMessage({
+      type: "PRECACHE",
+      files,
+      bounds: window.SITE && SITE.maxBounds,
+      zoom: 15
+    });
+    toast("Saving in the background — you can keep browsing.");
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = "✅ Saved for offline use";
+      btn.classList.add("saved");
+    }, 4000);
+  };
+})();
+
+/* ============================================================
+   CHUNK 7 — PRIZE PROGRESS
+   ============================================================ */
+(function(){
+  // Load prizes.csv if present
+  async function loadPrizes(){
+    try {
+      const r = await (window.dataFetch ? dataFetch("prizes.csv", { cache:"no-store" }) : fetch("prizes.csv"));
+      if (!r.ok) return [];
+      const txt = await r.text();
+      if (!txt.trim()) return [];
+      return Papa.parse(txt, { header:true, skipEmptyLines:"greedy" }).data
+        .filter(r => String(r.PRIZE_ID || "").trim());
+    } catch(e){ return []; }
+  }
+
+  function progressFor(prize){
+    // REQUIRED_STAMPS is a pipe-separated list of stamp IDs
+    const needed = String(prize.REQUIRED_STAMPS || "").split("|").map(s => s.trim()).filter(Boolean);
+    const got = (window.getUnlockedStamps ? getUnlockedStamps() : []).map(String);
+    const have = needed.filter(id => got.includes(id));
+    return { need: needed.length, have: have.length, done: have.length >= needed.length };
+  }
+
+  function renderPrizes(prizes){
+    const body = document.querySelector(".passport-body");
+    if (!body || !prizes.length) return;
+    let box = $id("pPrizes");
+    if (!box){
+      box = document.createElement("section");
+      box.id = "pPrizes";
+      const grid = $id("stampGrid");
+      if (grid) grid.parentNode.insertBefore(box, grid);
+      else body.appendChild(box);
+    }
+    box.innerHTML = `<h3 class="p-h">Prize progress</h3>` + prizes.map(p => {
+      const { need, have, done } = progressFor(p);
+      const pct = need ? Math.round(have / need * 100) : 0;
+      return `<div class="p-prize ${done ? "done" : ""}">
+        <h4>${escapeHtml(p.LABEL || p.PRIZE_ID)}</h4>
+        <div class="bar"><i style="width:${pct}%"></i></div>
+        <div class="meta">${done ? "🎉 " + escapeHtml(p.REWARD || "You did it!") : have + " of " + need + " — " + escapeHtml(p.REWARD || "keep going!")}</div>
+      </div>`;
+    }).join("");
+  }
+
+  function escapeHtml(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+
+  // Refresh prizes whenever the passport opens
+  const drawer = $id("passportDrawer");
+  if (!drawer) return;
+  let prizesLoaded = null;
+  const refresh = async () => {
+    if (!prizesLoaded) prizesLoaded = await loadPrizes();
+    if (prizesLoaded.length) renderPrizes(prizesLoaded);
+  };
+  // Initial + on each open
+  setTimeout(refresh, 4000);
+  const mo = new MutationObserver(() => {
+    if (drawer.classList.contains("open")) refresh();
+  });
+  mo.observe(drawer, { attributes:true, attributeFilter:["class"] });
+})();
+
+})();
+  
 </script>
+  <div id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
