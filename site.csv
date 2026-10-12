@@ -1,25 +1,25 @@
 KEY,VALUE
 PLACE,Franklin County
-HEADER,Explore Franklin County
-TAB_TITLE,Explore Franklin County
-BAR_COLOR,#b43616
-CENTER_LAT,39.647531
-CENTER_LNG,-85.138892
+HEADER,Explore {PLACE}
+TAB_TITLE,Explore {PLACE}
+BAR_COLOR,#ba352e
+CENTER_LAT,39.425524
+CENTER_LNG,-85.018929
 ZOOM,14
-BOUNDS_WEST,-85.4
-BOUNDS_SOUTH,39.45
-BOUNDS_EAST,-84.95
-BOUNDS_NORTH,39.8
+BOUNDS_WEST,-85.333948
+BOUNDS_SOUTH,39.25122
+BOUNDS_EAST,-84.759256
+BOUNDS_NORTH,39.567955
 MIN_ZOOM,
 MAX_ZOOM,
-FIT_TO_MARKERS,yes
+FIT_TO_MARKERS,no
 PASSPORT,yes
 PASSPORT_RANKS,yes
 YEAR_SLIDER,yes
 OVERLAY_SLIDER,yes
 AERIAL_BUTTON,yes
 EVENT_BUTTON,About
-EVENT_TITLE,What's Going On?
+EVENT_TITLE,WHat's Going On?
 EVENT_TEXT,"Tap a place. A card slides up from the bottom. Drag the little bar at the top of the card up for a bigger view, or down to dismiss.
 
 Filter by category. Use the pills at the top. Tap to hide or show a category; tap ""Reset"" to bring them all back.
@@ -30,4 +30,4 @@ Share a place. Open a place and tap ""Share this place"" — the link will take 
 
 Save for offline use. Open your passport (🏆 in the top-right) and tap ""Save this map for offline use."" After it finishes, the map, photos, and stories work without a signal. Great for walking tours."
 WELCOME_THEME,fall
-WELCOME_TEXT,Welcome to|Franklin County
+WELCOME_TEXT,Welcome to|{PLACE}
