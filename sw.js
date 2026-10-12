@@ -82,4 +82,8 @@ self.addEventListener("message", e => {
         if (res.ok) await cache.put(f, res.clone());
       } catch(err){}
     }
-    // Optionally precache
+    // Optionally precache tiles: bounds + zoom range — kept simple here
+    // (a full tile prefetch is heavy; leave for a future release)
+    self.clients.matchAll().then(cs => cs.forEach(c => c.postMessage({ type:"PRECACHE_DONE" })));
+  })();
+});
