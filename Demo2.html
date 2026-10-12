@@ -430,7 +430,11 @@ html.settings-loading #tools { visibility: hidden; }
 
 /* WIPE HANDLE (the split itself is drawn by JS as an <img>) */
 #wipe{
-  position:fixed;top:0;bottom:0;width:44px;
+  position:fixed;
+  top:0;                         /* JS sets the real top/height to match the map */
+  bottom:auto;
+  height:200px;                  /* placeholder until JS sizes it */
+  width:44px;
   margin-left:-22px;
   z-index:6;
   cursor:ew-resize;touch-action:none;
@@ -460,36 +464,6 @@ html.settings-loading #tools { visibility: hidden; }
 @keyframes wipeHint{
   0%{opacity:0}15%{opacity:1}80%{opacity:1}100%{opacity:0}
 }
-
-/* CATEGORY CHIPS */
-#catChips{
-  display:flex;gap:6px;flex-wrap:wrap;margin:0;
-  padding:0;list-style:none;
-}
-#catChips button{
-  border:2px solid var(--bar,#E47303);
-  background:#fff;color:#222;
-  border-radius:16px;padding:4px 10px;font-size:12px;
-  cursor:pointer;display:flex;align-items:center;gap:5px;
-}
-#catChips button[aria-pressed="true"]{
-  background:var(--bar,#E47303);color:#fff;
-}
-#catChips button .swatch{
-  width:10px;height:10px;border-radius:50%;
-  background:var(--sw,#E47303);border:1px solid #fff;
-}
-#catChips button[aria-pressed="true"] .swatch{border-color:#fff8}
-#catChips .reset{
-  background:none;border:0;color:#fff;
-  text-decoration:underline;font-size:12px;
-  padding:4px 6px;cursor:pointer;
-}
-#catChipsWrap{
-  display:flex;gap:8px;align-items:center;flex-wrap:wrap;
-}
-#catChipsWrap[hidden]{display:none}
-
 /* SHARE BUTTON & TOAST */
 .share-btn{
   display:inline-flex;align-items:center;gap:6px;
