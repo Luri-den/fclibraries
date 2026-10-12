@@ -3195,35 +3195,44 @@ setTimeout(buildChips, 3000);
 (function(){
   const qs = () => new URLSearchParams(location.search);
 
-  try {
-    const q = qs();
-    const y = q.get("year");
-    const yr = $id("yr");
-    if (y && yr){ yr.value = y; yr.dispatchEvent(new Event("input")); }
+  // Remember what was in the URL when the page first loaded.
+  // The reader only acts on that original value — writes we make later
+  // (as the user browses) do NOT cause a re-select on next render.
+  const incomingPlace = qs().get("place");
+  const incomingYear  = qs().get("year");
+  const incomingCat   = qs().get("cat");
+  const hadIncomingSpot = qs().has("spot");
+  const hadIncomingSite = qs().has("site");
 
-    const cat = q.get("cat");
-    if (cat){
-      const on = new Set(cat.split(",").map(s => s.trim().toUpperCase()));
+  try {
+    if (incomingYear){
+      const yr = $id("yr");
+      if (yr){ yr.value = incomingYear; yr.dispatchEvent(new Event("input")); }
+    }
+    if (incomingCat){
+      const on = new Set(incomingCat.split(",").map(s => s.trim().toUpperCase()));
       if (on.size && window.SITE && SITE.catNames){
         Object.keys(SITE.catNames).forEach(code => { if (!on.has(code)) hiddenCats.add(code); });
         try { localStorage.setItem(HIDDEN_CATS_KEY, JSON.stringify([...hiddenCats])); } catch {}
         setTimeout(buildChips, 500);
       }
     }
-
-    const place = q.get("place");
-    if (place && !q.get("site")){
-      let tries = 0;
-      const t = setInterval(() => {
-        const it = (window.places || []).concat(window.kids || [])
-          .find(p => String(p.id).trim().toLowerCase() === place.trim().toLowerCase());
-        if (!it && ++tries < 60) return;
-        clearInterval(t);
-        if (it) window.select && window.select(it);
-      }, 250);
-    }
   } catch(e){}
 
+  // Only auto-select an incoming place if the welcome overlay is NOT up
+  // (so we don't fight the intro) and there isn't already a spot/site link.
+  if (incomingPlace && !hadIncomingSite && !hadIncomingSpot) {
+    const trySelect = () => {
+      const welcomeUp = document.getElementById("welcomeOverlay");
+      if (welcomeUp) { setTimeout(trySelect, 500); return; }
+      const it = (window.places || []).concat(window.kids || [])
+        .find(p => String(p.id).trim().toLowerCase() === incomingPlace.trim().toLowerCase());
+      if (it && window.select) window.select(it);
+    };
+    setTimeout(trySelect, 800);
+  }
+
+  // Share button on the panel
   const panel = $id("panel");
   if (panel){
     new MutationObserver(() => {
@@ -3248,6 +3257,8 @@ setTimeout(buildChips, 3000);
     }).observe(panel, { childList:true, subtree:true });
   }
 
+  // Update the URL as the user browses — but only AFTER the welcome is gone,
+  // and never touch the URL while the welcome is still up.
   const origSelect = window.select;
   if (typeof origSelect === "function" && !window.__selectPatched){
     window.__selectPatched = true;
@@ -3255,6 +3266,7 @@ setTimeout(buildChips, 3000);
       window.__sel = it;
       origSelect.apply(this, arguments);
       if (!it) return;
+      if (document.getElementById("welcomeOverlay")) return;   // don't write during intro
       try {
         const q = qs();
         q.set("place", it.id);
