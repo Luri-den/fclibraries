@@ -78,7 +78,7 @@ html.settings-loading #tools { visibility: hidden; }
   width:100%;
   height:auto;
   max-height:45vh;
-  object-fit:cover;     /* change to contain to see the whole photo uncropped */
+  object-fit:cover;
   border-radius:6px;
   cursor:zoom-in;
 }
@@ -125,7 +125,7 @@ html.settings-loading #tools { visibility: hidden; }
 #eventCard summary{cursor:pointer;font-size:14px;margin-bottom:4px}
 #eventBtn.now{background:#d4351c;color:#fff;font-weight:bold}
 #spotCard{position:relative;background:#fff;border:6px solid #D55E00;border-radius:18px;max-width:560px;max-height:92vh;overflow:auto;padding:14px}
-#spotCard {width:100%;max-height:52vh;object-fit:contain;border-radius:8px;background:#eee;cursor:zoom-in}
+#spotCard img{width:100%;max-height:52vh;object-fit:contain;border-radius:8px;background:#eee;cursor:zoom-in}
 #spotCard h2{margin:10px 0 4px}
 #sp-x{position:absolute;right:8px;top:2px;font-size:30px;border:0;background:none;cursor:pointer}
 #sp-go{display:block;margin-top:12px;padding:10px 14px;border:0;border-radius:6px;background:#D55E00;color:#fff;font-size:16px;cursor:pointer}
@@ -195,7 +195,6 @@ html.settings-loading #tools { visibility: hidden; }
   right: 0;
 }
 
-/* HEADER AND VISIBLE CLOSE BUTTON */
 .passport-header {
   background: var(--bar, #E47303);
   color: #fff;
@@ -236,7 +235,6 @@ html.settings-loading #tools { visibility: hidden; }
   background: #fff2e5;
 }
 
-/* SCROLLABLE PANEL CONTENT */
 .passport-body {
   padding: 16px;
   overflow-y: auto;
@@ -245,7 +243,6 @@ html.settings-loading #tools { visibility: hidden; }
   background: #fafafa;
 }
 
-/* PROGRESS SECTION */
 .passport-progress {
   padding: 12px;
   margin-bottom: 12px;
@@ -278,7 +275,6 @@ html.settings-loading #tools { visibility: hidden; }
   color: #555;
 }
 
-/* CHECK-IN BUTTON */
 #checkinBtn {
   width: 100%;
   box-sizing: border-box;
@@ -289,7 +285,6 @@ html.settings-loading #tools { visibility: hidden; }
   margin-bottom: 12px;
 }
 
-/* DISCOVERY INSTRUCTIONS */
 .passport-discover {
   margin: 0 0 12px;
 }
@@ -306,7 +301,6 @@ html.settings-loading #tools { visibility: hidden; }
   color: #555;
 }
 
-/* STAMP COLLECTION GRID */
 .stamp-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -343,18 +337,9 @@ html.settings-loading #tools { visibility: hidden; }
 }
 
 @keyframes stampIn {
-  0% {
-    transform: scale(2) rotate(15deg);
-    opacity: 0;
-  }
-  60% {
-    transform: scale(0.9) rotate(-5deg);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
+  0% { transform: scale(2) rotate(15deg); opacity: 0; }
+  60% { transform: scale(0.9) rotate(-5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
 .stamp-card.unlocked {
@@ -370,7 +355,6 @@ html.settings-loading #tools { visibility: hidden; }
   opacity: 1;
 }
 
-/* RANKS AND TASKS, BELOW THE STAMP COLLECTION */
 #pStamps {
   margin-top: 18px;
   margin-bottom: 18px;
@@ -378,7 +362,7 @@ html.settings-loading #tools { visibility: hidden; }
   border-top: 2px solid #e8e8e8;
 }
 
-/* PHOTO LIGHTBOX (still + optional animation) */
+/* PHOTO LIGHTBOX */
 #imgView{position:fixed;inset:0;z-index:99998;background:#000e;display:flex;align-items:center;justify-content:center;cursor:zoom-out;overflow:hidden}
 #imgView[hidden]{display:none}
 #imgView .stage{position:relative;max-width:96vw;max-height:92vh;line-height:0}
@@ -389,7 +373,6 @@ html.settings-loading #tools { visibility: hidden; }
 #imgView .caption{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);color:#fff;padding:12px;font-size:14px;text-align:center;border-radius:0 0 12px 12px;pointer-events:none}
 #imgView button.close-lightbox{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;background:none;border:0;cursor:pointer;z-index:99999}
 
-/* Lightbox prev/next arrows */
 #imgView .lb-nav{
   position:absolute;top:50%;transform:translateY(-50%);
   width:52px;height:52px;border-radius:50%;
@@ -409,7 +392,6 @@ html.settings-loading #tools { visibility: hidden; }
   #imgView .lb-next{right:8px}
 }
 
-/* Shared still+video wrapper used in the spot card and tour card */
 .photo-anim{position:relative;display:block;line-height:0}
 .photo-anim img{width:100%;display:block;border-radius:6px}
 .photo-anim video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px;pointer-events:none}
@@ -425,9 +407,8 @@ html.settings-loading #tools { visibility: hidden; }
   .stamp-card.unlocked{animation:none}
 }
 
-#panel.grabber {
-  padding-top: 22px;
-}
+/* HALF-SHEET PANEL (mobile drag) */
+#panel.grabber { padding-top: 22px; }
 #panel .grab{
   position:absolute;left:50%;top:6px;transform:translateX(-50%);
   width:44px;height:5px;border-radius:3px;background:#c9c9c9;
@@ -447,10 +428,11 @@ html.settings-loading #tools { visibility: hidden; }
   #panel.snap-closed{transform:translateY(100%)}
 }
 
+/* WIPE HANDLE (the split itself is drawn by JS as an <img>) */
 #wipe{
   position:fixed;top:0;bottom:0;width:44px;
   margin-left:-22px;
-  z-index:6;                    /* was 4 — now above the map, below the toolbar */
+  z-index:6;
   cursor:ew-resize;touch-action:none;
   display:flex;align-items:center;justify-content:center;
   pointer-events:auto;
@@ -466,13 +448,20 @@ html.settings-loading #tools { visibility: hidden; }
   box-shadow:0 2px 6px #0006;
   display:flex;align-items:center;justify-content:center;
   font-size:18px;color:#333;user-select:none;
-  pointer-events:none;          /* the whole #wipe is the hit target, not just the knob */
+  pointer-events:none;
 }
 #wipe[hidden]{display:none}
-  
-/* ============================================================
-   CATEGORY CHIPS
-   ============================================================ */
+#wipeHint{
+  position:fixed;left:50%;bottom:100px;transform:translateX(-50%);
+  background:#000b;color:#fff;padding:8px 14px;border-radius:16px;
+  font-size:13px;z-index:7;pointer-events:none;
+  animation:wipeHint 4s ease-in-out forwards;
+}
+@keyframes wipeHint{
+  0%{opacity:0}15%{opacity:1}80%{opacity:1}100%{opacity:0}
+}
+
+/* CATEGORY CHIPS */
 #catChips{
   display:flex;gap:6px;flex-wrap:wrap;margin:0;
   padding:0;list-style:none;
@@ -501,10 +490,7 @@ html.settings-loading #tools { visibility: hidden; }
 }
 #catChipsWrap[hidden]{display:none}
 
-
-/* ============================================================
-    SHARE BUTTON & TOAST
-   ============================================================ */
+/* SHARE BUTTON & TOAST */
 .share-btn{
   display:inline-flex;align-items:center;gap:6px;
   margin:8px 6px 0 0;padding:7px 12px;
@@ -521,9 +507,7 @@ html.settings-loading #tools { visibility: hidden; }
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ============================================================
-   OFFLINE BUTTON & PROGRESS
-   ============================================================ */
+/* OFFLINE BUTTON */
 #offlineBtn{
   display:block;width:100%;box-sizing:border-box;
   margin:6px 0;padding:9px 12px;
@@ -534,37 +518,7 @@ html.settings-loading #tools { visibility: hidden; }
 #offlineBtn.saved{background:#f4fbf4;border-color:#cfe8cf;color:#2e6e3a}
 #offlineBtn[disabled]{opacity:.6;cursor:default}
 
-/* ============================================================
-   PRIZE PROGRESS
-   ============================================================ */
-.p-prize{
-  background:#fff8f0;border:2px solid #f0d2b5;border-radius:10px;
-  padding:10px 12px;margin:10px 0;
-}
-.p-prize.done{background:#f4fbf4;border-color:#cfe8cf}
-.p-prize h4{margin:0 0 4px;font-size:14px;color:#333}
-.p-prize .bar{
-  height:8px;border-radius:4px;background:#fff;overflow:hidden;
-  border:1px solid #e0c8a8;margin:6px 0;
-}
-.p-prize .bar>i{
-  display:block;height:100%;background:var(--bar,#E47303);
-  transition:width .3s;
-}
-.p-prize .meta{font-size:12px;color:#555}
-.p-prize.done .meta{color:#2e6e3a;font-weight:600}
-
-#wipeHint{
-  position:fixed;left:50%;bottom:100px;transform:translateX(-50%);
-  background:#000b;color:#fff;padding:8px 14px;border-radius:16px;
-  font-size:13px;z-index:7;pointer-events:none;
-  animation:wipeHint 4s ease-in-out forwards;
-}
-@keyframes wipeHint{
-  0%{opacity:0}15%{opacity:1}80%{opacity:1}100%{opacity:0}
-}
-
-/* Prize section in the passport drawer (replaces the earlier CSS) */
+/* PRIZES */
 .p-prize{
   background:#fff8f0;border:2px solid #f0d2b5;border-radius:10px;
   padding:10px 12px;margin:10px 0;
@@ -588,7 +542,7 @@ html.settings-loading #tools { visibility: hidden; }
 }
 .p-prize .p-claim:hover{background:#c65f00}
 
-/* Claim slip modal */
+/* CLAIM SLIP */
 #claimSlip{
   position:fixed;inset:0;z-index:200000;
   background:#000c;display:none;align-items:center;justify-content:center;padding:20px;
@@ -619,7 +573,7 @@ html.settings-loading #tools { visibility: hidden; }
   position:absolute;top:6px;right:12px;font-size:32px;
   border:0;background:none;cursor:pointer;color:#999;
 }
-    
+
 </style>
 </head>
 
@@ -669,7 +623,7 @@ html.settings-loading #tools { visibility: hidden; }
   <input id="q" type="search" placeholder="Search places..." aria-label="Search places">
   <ul id="res" hidden></ul>
   <div id="catChipsWrap" hidden>
-  <ul id="catChips" aria-label="Filter by category"></ul>
+    <ul id="catChips" aria-label="Filter by category"></ul>
   </div>
   <div id="tools">
     <button id="near" type="button">Near Me</button>
@@ -687,17 +641,13 @@ html.settings-loading #tools { visibility: hidden; }
 <div id="map"></div>
 <aside id="panel" hidden aria-live="polite"></aside>
 
-<!-- PASSPORT DRAWER -->
 <div id="passportDrawer">
   <div class="passport-header">
     <h2>History Passport</h2>
-    <button id="closePassport" type="button"
-            aria-label="Close History Passport">&times;</button>
+    <button id="closePassport" type="button" aria-label="Close History Passport">&times;</button>
   </div>
 
   <div class="passport-body">
-
-    <!-- 1. Progress -->
     <section class="passport-progress">
       <h3>Your progress</h3>
       <div class="passport-progress-count">
@@ -706,32 +656,18 @@ html.settings-loading #tools { visibility: hidden; }
       </div>
     </section>
 
-    <!-- 2. Check-in -->
-    <button id="checkinBtn" type="button" class="p-checkin">
-      📍 I'm here: check in
-    </button>
+    <button id="checkinBtn" type="button" class="p-checkin">📍 I'm here: check in</button>
     <div id="checkinMsg" class="p-checkin-msg" aria-live="polite"></div>
 
-    <!-- 3. Discovery instructions -->
     <section class="passport-discover">
       <h3 class="p-h">Places to discover</h3>
-      <p>
-        Open a place on the map, scan its QR sign, or check in when
-        you're standing there to light up its stamp. Tap a stamp to
-        see where it is.
-      </p>
+      <p>Open a place on the map, scan its QR sign, or check in when you're standing there to light up its stamp. Tap a stamp to see where it is.</p>
     </section>
 
-    <!-- 4. Stamp collection -->
     <div class="stamp-grid" id="stampGrid"></div>
-
-    <!-- 5. Ranks, stamp progress, and tasks are added here by JavaScript -->
-
   </div>
 </div>
 
-
-<!-- PHOTO LIGHTBOX -->
 <div id="imgView" hidden role="dialog" aria-label="Enlarged photo">
   <button type="button" class="close-lightbox" aria-label="Close">&times;</button>
   <div class="stage">
@@ -743,6 +679,8 @@ html.settings-loading #tools { visibility: hidden; }
   </div>
 </div>
 
+<div id="toast" role="status" aria-live="polite"></div>
+
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="welcome-themes.js"></script>
 <script src="marker-shapes.js"></script>
@@ -750,7 +688,6 @@ html.settings-loading #tools { visibility: hidden; }
 <script src="marker-fill.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
-  // Fallback: if the primary CDN fails, try unpkg
   if (typeof Papa === "undefined") {
     document.write('<script src="https://unpkg.com/papaparse@5.4.1/dist/papaparse.min.js"><\/script>');
   }
@@ -766,29 +703,26 @@ const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
 const key = s => String(s || "").trim().toLowerCase();
 
 /* ============================================================
-   PASSPORT & ACHIEVEMENTS SYSTEM (visit tracker)
+   EVENTS
    ============================================================ */
-
-/* ============================================================
-   EVENTS: Demo2.html?event=name loads that event's saved copy from events/name/
-   (made with events.html). Without ?event= the page shows the live site as usual.
-   ============================================================ */
-const EVENT_SLUG = (() => { const v = new URLSearchParams(location.search).get("event") || ""; return v.toLowerCase() !== "main" && /^[a-z0-9][a-z0-9_-]*$/i.test(v) ? v.toLowerCase() : ""; })();   // ?event=main means "the usual map"
+const EVENT_SLUG = (() => { const v = new URLSearchParams(location.search).get("event") || ""; return v.toLowerCase() !== "main" && /^[a-z0-9][a-z0-9_-]*$/i.test(v) ? v.toLowerCase() : ""; })();
 const EVENT_DIR = EVENT_SLUG ? "events/" + EVENT_SLUG + "/" : "";
-const KEY_SUFFIX = EVENT_SLUG ? "@" + EVENT_SLUG : "";      // keeps each event's passport progress separate
+const KEY_SUFFIX = EVENT_SLUG ? "@" + EVENT_SLUG : "";
 
 window.EVENT_DIR = EVENT_DIR;
 window.KEY_SUFFIX = KEY_SUFFIX;
-let EVENT_INFO = null;                                       // events/name/event.json: which data files and folders the event holds
+
+let EVENT_INFO = null;
 const EVENT_READY = EVENT_SLUG
   ? fetch(EVENT_DIR + "event.json", { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null).then(j => { EVENT_INFO = j; })
   : Promise.resolve();
-let EVENTS_INDEX = [];                                       // events/index.json: events shown in the switcher
+
+let EVENTS_INDEX = [];
 const EVENTS_INDEX_READY = fetch("events/index.json", { cache: "no-store" })
   .then(r => r.ok ? r.json() : [])
   .catch(() => [])
   .then(a => { EVENTS_INDEX = Array.isArray(a) ? a.filter(x => x && /^[a-z0-9][a-z0-9_-]*$/i.test(x.slug || "")) : []; });
-// While a scheduled event is on, the plain page link opens it by itself. ?event=main (or a spot or place link) still gives the usual map.
+
 const AUTO_CHECK = EVENTS_INDEX_READY.then(() => {
   if (EVENT_SLUG || !window.EventSchedule) return;
   if (/[?&](event|spot|site|skipWelcome)=/i.test(location.search)) return;
@@ -796,15 +730,16 @@ const AUTO_CHECK = EVENTS_INDEX_READY.then(() => {
     .sort((a, b) => EventSchedule.status(b.schedule).start - EventSchedule.status(a.schedule).start)[0];
   if (on) location.replace(location.pathname + "?event=" + encodeURIComponent(on.slug) + location.hash);
 });
+
 const EVENT_FOLDERS = () => (EVENT_INFO && Array.isArray(EVENT_INFO.folders)) ? EVENT_INFO.folders : ["photos", "spots", "stories", "anims"];
-// Photos, spots, stories and anims come from the event's own copy of those folders when it has one.
+
 function assetUrl(path) {
   const p = String(path || "");
   if (!EVENT_SLUG || /^([a-z]+:)?\/\//i.test(p) || p.startsWith("data:")) return p;
   const m = /^(photos|spots|stories|anims)\//.exec(p);
   return m && EVENT_FOLDERS().includes(m[1]) ? EVENT_DIR + p : p;
 }
-// Data files come from the event's copy. An event saved without a file does not borrow the live site's.
+
 async function dataFetch(file, opts) {
   await EVENT_READY;
   await AUTO_CHECK;
@@ -821,13 +756,10 @@ async function dataFetch(file, opts) {
 const UNLOCKED_KEY = "connersville_unlocked_stamps" + KEY_SUFFIX;
 
 function getUnlockedStamps() {
-  try {
-    return JSON.parse(localStorage.getItem(UNLOCKED_KEY)) || [];
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(localStorage.getItem(UNLOCKED_KEY)) || []; } catch { return []; }
 }
 window.getUnlockedStamps = getUnlockedStamps;
+
 function unlockStamp(id) {
   if (!id) return;
   const unlocked = getUnlockedStamps();
@@ -839,9 +771,8 @@ function unlockStamp(id) {
   }
 }
 
-// The collection: places flagged MAJOR in locations.csv / childmarkers.csv.
-// If nothing is flagged yet, fall back to the main places so the drawer is never empty.
 const isYes = v => ["yes", "true", "1", "y"].includes(key(v));
+
 function majorSites() {
   const flagged = places.concat(kids).filter(s => isYes(s.d && s.d.MAJOR));
   return flagged.length ? flagged : places;
@@ -854,10 +785,8 @@ function updatePassportUI() {
   const foundCount = sites.filter(s => unlocked.includes(String(s.id))).length;
   const c2 = $("passportCount2");
   if (c2) c2.textContent = foundCount + " of " + sites.length;
-
   const countEl = $("passportCount");
   if (countEl) countEl.textContent = `${foundCount}/${total}`;
-
   const grid = $("stampGrid");
   if (!grid) return;
 
@@ -872,8 +801,6 @@ function updatePassportUI() {
     `;
   }).join("");
 
-  // Tapping a stamp shows where the place is. It does NOT light the stamp:
-  // that happens when the visitor opens the place, scans its QR sign, or checks in nearby.
   grid.onclick = e => {
     const card = e.target.closest(".stamp-card");
     if (!card) return;
@@ -885,7 +812,6 @@ function updatePassportUI() {
 /* ============================================================
    WELCOME GIF INTRO
    ============================================================ */
-
 const WELCOME_DISPLAY_TIME = 3000;
 const WELCOME_TRANSITION_TIME = 650;
 const WELCOME_SITE_TIME = 4000;
@@ -898,17 +824,13 @@ const WELCOME_STEPS = [
 function startWelcome(featuredId){
   const overlay = document.getElementById("welcomeOverlay");
   const image   = document.getElementById("welcomeImage");
-
   if (!overlay || !image || !WELCOME_STEPS.length) return;
 
   let index = 0;
   let timer = null;
   let stopped = false;
 
-  WELCOME_STEPS.forEach(step => {
-    const preload = new Image();
-    if (step.gif) preload.src = step.gif;
-  });
+  WELCOME_STEPS.forEach(step => { const p = new Image(); if (step.gif) p.src = step.gif; });
 
   let siteTimer = null, lastId = null, tries = 0;
   let featuredShown = false;
@@ -924,20 +846,14 @@ function startWelcome(featuredId){
   function nextSite() {
     if (stopped) return;
     document.querySelectorAll(".pin.spot").forEach(e => e.classList.remove("spot"));
-
     const pool = places.concat(kids).filter(i => PHOTO_SRC[i.id]);
-    if (!pool.length) {
-      if (++tries > 20) finish(); else siteTimer = setTimeout(nextSite, 600);
-      return;
-    }
+    if (!pool.length) { if (++tries > 20) finish(); else siteTimer = setTimeout(nextSite, 600); return; }
 
     let it = null;
-
     if (featuredId && !featuredShown) {
       it = pool.find(i => key(i.id) === key(featuredId)) || null;
       if (it) featuredShown = true;
     }
-
     if (!it) {
       const choices = pool.length > 1 ? pool.filter(i => i.id !== lastId) : pool;
       it = choices[Math.floor(Math.random() * choices.length)];
@@ -987,10 +903,7 @@ function startWelcome(featuredId){
     }, WELCOME_TRANSITION_TIME);
   }
 
-  document.getElementById("wsGo").addEventListener("click", e => {
-    e.stopPropagation();
-    goToFeatured();
-  });
+  document.getElementById("wsGo").addEventListener("click", e => { e.stopPropagation(); goToFeatured(); });
 
   function finish(){
     if (stopped) return;
@@ -998,7 +911,6 @@ function startWelcome(featuredId){
     clearTimeout(timer);
     clearTimeout(siteTimer);
     document.querySelectorAll(".pin.spot").forEach(e => e.classList.remove("spot"));
-
     overlay.classList.remove("show");
     overlay.classList.add("exit");
     setTimeout(() => { overlay.remove(); }, WELCOME_TRANSITION_TIME);
@@ -1007,7 +919,6 @@ function startWelcome(featuredId){
   function showNext(){
     if (stopped) return;
     if (index >= WELCOME_STEPS.length) { finish(); return; }
-
     const step = WELCOME_STEPS[index];
     index++;
     if (step.type === "sites") { startSites(); return; }
@@ -1019,12 +930,10 @@ function startWelcome(featuredId){
     requestAnimationFrame(() => {
       if (stopped) return;
       overlay.classList.add("show");
-
       timer = setTimeout(() => {
         if (stopped) return;
         overlay.classList.remove("show");
         overlay.classList.add("exit");
-
         setTimeout(() => {
           if (stopped) return;
           overlay.classList.remove("exit");
@@ -1038,24 +947,19 @@ function startWelcome(featuredId){
     const pin = document.querySelector(".pin.spot");
     if (pin) {
       const r = pin.getBoundingClientRect();
-      const hit = e.clientX >= r.left && e.clientX <= r.right &&
-                  e.clientY >= r.top  && e.clientY <= r.bottom;
+      const hit = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
       if (hit) { goToFeatured(); return; }
     }
     finish();
   });
 
-  document.addEventListener("keydown", e => {
-    if (e.key === "Escape") finish();
-  }, { once:true });
-
+  document.addEventListener("keydown", e => { if (e.key === "Escape") finish(); }, { once:true });
   showNext();
 }
 
 /* ============================================================
    SITE SETTINGS
    ============================================================ */
-
 const SITE = {
   center: [-85.13889209220456, 39.64753066097082],
   zoom: 14,
@@ -1088,33 +992,29 @@ const SITE = {
     boundary: "connersville.geojson"
   }
 };
-
-/* expose to the post-load enhancement block at the bottom of the file */
 window.SITE = SITE;
 
-/* ============================================================
-   MAP
-   ============================================================ */
-/* ===== Settings from site.csv (written by the settings editor) ===== */
 SITE.fitMarkers = true;
 SITE.fromCsv = false;
-SITE.passport = true;         // PASSPORT in site.csv: no = hide the whole passport
-SITE.passportRanks = true;    // PASSPORT_RANKS in site.csv: no = keep tasks and discoveries, drop stars and ranks
-SITE.yearSlider = true;       // YEAR_SLIDER in site.csv: no = hide the year slider
-SITE.aerialButton = true;       // AERIAL_BUTTON in site.csv: no = hide the aerial view button
-SITE.overlaySlider = true;    // OVERLAY_SLIDER in site.csv: no = no old-map overlays or slider at all
-SITE.welcomeTheme = "";       // WELCOME_THEME in site.csv: blank = the classic welcome1.gif; or halloween, fall, winter
-SITE.welcomeText = "";        // WELCOME_TEXT in site.csv: "Welcome to|{PLACE}" (| = new line)
-SITE.place = "";              // PLACE in site.csv
-SITE.fills = {};              // CATEGORY code -> { fill, fillColor, fillColor2 }, from the FILL columns of categories.csv
-SITE.shapes = {};             // CATEGORY code -> shape code, from the SHAPE column of categories.csv
-SITE.customShapes = {};       // your own shapes, from shapes.csv
-SITE.event = { button: "About", title: "", text: "" };   // EVENT_BUTTON / EVENT_TITLE / EVENT_TEXT in site.csv
+SITE.passport = true;
+SITE.passportRanks = true;
+SITE.prizes = true;
+SITE.yearSlider = true;
+SITE.aerialButton = true;
+SITE.overlaySlider = true;
+SITE.welcomeTheme = "";
+SITE.welcomeText = "";
+SITE.place = "";
+SITE.fills = {};
+SITE.shapes = {};
+SITE.customShapes = {};
+SITE.event = { button: "About", title: "", text: "" };
+
 const SETTINGS_READY = dataFetch("site.csv", { cache: "no-store" })
   .then(r => r.ok ? r.text() : "")
   .catch(() => "")
   .then(txt => {
-    if (!txt.trim()) return;               // no site.csv: keep the built-in defaults
+    if (!txt.trim()) return;
     const S = {};
     Papa.parse(txt, { header: true, skipEmptyLines: "greedy" }).data.forEach(r => {
       const k = String(r.KEY || "").trim().toUpperCase();
@@ -1137,6 +1037,7 @@ const SETTINGS_READY = dataFetch("site.csv", { cache: "no-store" })
     SITE.fitMarkers = (S.FIT_TO_MARKERS || "yes").toLowerCase() !== "no";
     SITE.passport = (S.PASSPORT || "yes").toLowerCase() !== "no";
     SITE.passportRanks = (S.PASSPORT_RANKS || "yes").toLowerCase() !== "no";
+    SITE.prizes = (S.PRIZES || "yes").toLowerCase() !== "no";
     SITE.yearSlider = (S.YEAR_SLIDER || "yes").toLowerCase() !== "no";
     SITE.overlaySlider = (S.OVERLAY_SLIDER || "yes").toLowerCase() !== "no";
     SITE.aerialButton = (S.AERIAL_BUTTON || "yes").toLowerCase() !== "no";
@@ -1147,16 +1048,10 @@ const SETTINGS_READY = dataFetch("site.csv", { cache: "no-store" })
     SITE.fromCsv = true;
   });
 
-Promise.race([
-  SETTINGS_READY,
-  new Promise(r => setTimeout(r, 1500))
-]).finally(() => {
-  document.documentElement.classList.remove("settings-loading");
-});
+Promise.race([SETTINGS_READY, new Promise(r => setTimeout(r, 1500))])
+  .finally(() => document.documentElement.classList.remove("settings-loading"));
 
-/* ===== photos.csv: ITEM_ID, ORDER, PATH, CAPTION, CREDIT =====
-   Row 1 of an item = caption and credit for its main photo (PATH blank = use the usual main photo).
-   Rows 2+ = extra photos with their own PATH, caption and credit. Items with no rows work as before. */
+/* ===== photos.csv ===== */
 const PHOTO_ROWS = {};
 const PHOTOS_READY = dataFetch("photos.csv", { cache: "no-store" })
   .then(r => r.ok ? r.text() : "")
@@ -1175,6 +1070,7 @@ const PHOTOS_READY = dataFetch("photos.csv", { cache: "no-store" })
     });
     Object.values(PHOTO_ROWS).forEach(a => a.sort((x, y) => x.order - y.order));
   });
+
 const photoNote = p => [p.caption, p.credit ? "Photo: " + p.credit : ""].filter(Boolean).join(" · ");
 function coverPath(id, fallback){ const a = PHOTO_ROWS[id]; return (a && a[0] && a[0].path) || fallback; }
 function coverNote(id, fallbackCredit){ const a = PHOTO_ROWS[id]; return a && a[0] ? photoNote({ caption: a[0].caption, credit: a[0].credit || fallbackCredit || "" }) : ""; }
@@ -1233,6 +1129,7 @@ const map = new maplibregl.Map({
   zoom: SITE.zoom,
   maxBounds: SITE.maxBounds
 });
+window.map = map;
 
 const spotId = new URLSearchParams(location.search).get("spot");
 const siteId = new URLSearchParams(location.search).get("site");
@@ -1256,20 +1153,16 @@ map.addControl(new maplibregl.ScaleControl(), "bottom-left");
 
 const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 svg.id = "leaders";
+svg.setAttribute("aria-hidden", "true");
 map.getCanvasContainer().appendChild(svg);
 
 let places = [], kids = [], focus = null, sel = null, prev = null;
-// expose to post-load enhancements
 Object.defineProperty(window, "places", { get: () => places });
 Object.defineProperty(window, "kids",   { get: () => kids });
 Object.defineProperty(window, "sel",    { get: () => sel });
 let returning = false, year = null, stops = [], tourI = -1, me = null;
 let tourGeoJSON = null;
 let travelInProgress = false;
-
-/* ============================================================
-   THUMBNAILS
-   ============================================================ */
 
 const EXT = ["jpg","jpeg","png","webp","JPG","PNG"];
 const PHOTO_SRC = {};
@@ -1278,12 +1171,10 @@ function thumb(id, category, path){
   const im = new Image();
   im.alt = "";
   let i = 0;
-  let typed = String(path || "").trim();   // PHOTO column: any folder/file; tried first
-
+  let typed = String(path || "").trim();
   const go = () => { im.src = assetUrl(typed || ("photos/" + encodeURIComponent(id) + "." + EXT[i])); };
-
   im.onerror = () => {
-    if (typed) { console.warn("Photo path not found for " + id + ": " + typed + " (trying photos/" + id + ")"); typed = ""; i = 0; go(); return; }
+    if (typed) { console.warn("Photo path not found for " + id + ": " + typed); typed = ""; i = 0; go(); return; }
     if (++i < EXT.length) { go(); return; }
     console.warn("No photo for " + id + ", using category icon");
     im.onerror = null;
@@ -1291,47 +1182,35 @@ function thumb(id, category, path){
     if (hasFill(category)) im.classList.add("is-fill");
     im.src = iconFor(category);
   };
-
   im.onload = () => {
-    if (im.classList.contains("is-default")) return;   // the icon is not a photo
+    if (im.classList.contains("is-default")) return;
     PHOTO_SRC[id] = im.currentSrc || im.src;
     updatePassportUI();
   };
   go();
   return im;
 }
-// Default icon for places with no photo. Each category's icon comes from categories.csv (ICON column);
-// these are the fallbacks when that file or column is missing.
+
 const DEFAULT_CATEGORY_ICON = { CIV:"courthouse", COMM:"store", RES:"house", IND:"factory", RAIL:"train", RAILROAD:"train", CANAL:"boat" };
 const hasFill = cat => !!(SITE.fills && SITE.fills[String(cat || "").trim().toUpperCase()]);
 function iconFor(cat){
   const code = String(cat || "").trim().toUpperCase();
   const f = SITE.fills && SITE.fills[code];
-  if (f && window.MarkerFill) return MarkerFill.url(f.fill, f.fillColor, f.fillColor2);   // a color or pattern instead of an icon
+  if (f && window.MarkerFill) return MarkerFill.url(f.fill, f.fillColor, f.fillColor2);
   return iconUrl((SITE.icons && SITE.icons[code]) || DEFAULT_CATEGORY_ICON[code] || "generic");
 }
-
-/* ============================================================
-   CSV LOADING
-   ============================================================ */
 
 async function load(file){
   try {
     const r = await dataFetch(file);
     if (!r.ok) throw new Error(String(r.status));
     return Papa.parse(await r.text(), { header: true, skipEmptyLines: "greedy" }).data;
-  } catch (e) {
-    console.warn("Could not load " + file);
-    return [];
-  }
+  } catch (e) { console.warn("Could not load " + file); return []; }
 }
-
-/* ============================================================
-   PASSPORT DATA (stamps.csv + tasks.csv)
-   ============================================================ */
 
 let STAMPS = [];
 let TASKS  = [];
+window.__stampsData = STAMPS;
 
 async function loadPassportData(){
   try {
@@ -1341,58 +1220,40 @@ async function loadPassportData(){
     ]);
     if (S) {
       const parsed = Papa.parse(S, { header:true, skipEmptyLines:"greedy" });
-      STAMPS = parsed.data
-        .filter(r => key(r.STAMP_ID))
-        .map(r => ({
-          row: r,
-          tasks: String(r.TASKS||"").split("|").map(s => s.trim()).filter(Boolean)
-        }));
+      STAMPS = parsed.data.filter(r => key(r.STAMP_ID)).map(r => ({
+        row: r,
+        tasks: String(r.TASKS||"").split("|").map(s => s.trim()).filter(Boolean)
+      }));
+      window.__stampsData = STAMPS;
     }
     if (T) {
       const parsed = Papa.parse(T, { header:true, skipEmptyLines:"greedy" });
       TASKS = parsed.data.filter(r => key(r.TASK_ID)).map(r => ({ row: r }));
     }
     console.info("Passport data loaded:", STAMPS.length, "stamps,", TASKS.length, "tasks");
-  } catch (e) {
-    console.warn("Couldn't load passport data:", e);
-  }
+  } catch (e) { console.warn("Couldn't load passport data:", e); }
 }
-
-/* ============================================================
-   MAP PINS
-   ============================================================ */
 
 function makePin(item, cls){
   const b = document.createElement("button");
   b.type = "button";
   b.className = "pin " + cls;
-
   if (/\d{4}/.test(item.d.CLSD || "")) b.classList.add("gone");
-
   b.setAttribute("aria-label", item.name);
   b.appendChild(thumb(item.id, item.d.CATEGORY, coverPath(item.id, item.d.PHOTO)));
-
   item.r = cls === "parent" ? 29 : 22;
   item.color = SITE.colors[String(item.d.CATEGORY || "").trim().toUpperCase()] || SITE.colors.default;
   b.style.setProperty("--c", item.color);
   const shape = SITE.shapes[String(item.d.CATEGORY || "").trim().toUpperCase()];
   if (shape && window.MarkerShapes) MarkerShapes.apply(b, shape, SITE.customShapes);
-
   b.onclick = e => { e.stopPropagation(); select(item); };
-
   item.el = b;
   item.marker = new maplibregl.Marker({ element:b }).setLngLat(item.ll).addTo(map);
 }
 
-/* ============================================================
-   LOAD MAP DATA
-   ============================================================ */
-
 map.on("load", async () => {
-
   await EVENT_READY;
   map.addSource("boundary", { type:"geojson", data: (EVENT_SLUG && EVENT_INFO && Array.isArray(EVENT_INFO.data) && EVENT_INFO.data.includes(SITE.files.boundary)) ? EVENT_DIR + SITE.files.boundary : SITE.files.boundary });
-
   map.addLayer({
     id: "boundary",
     type: "line",
@@ -1405,30 +1266,32 @@ map.on("load", async () => {
   await EVENTS_INDEX_READY;
   refreshEventButton();
   syncMoreBtn();
-const [L,C,CATS,SHAPEROWS] = await Promise.all([
-  load(SITE.files.locations),
-  load(SITE.files.children),
-  load("categories.csv"),
-  load("shapes.csv")
-]);
-if (window.MarkerShapes) SITE.customShapes = MarkerShapes.parseRows(SHAPEROWS);
 
-SITE.icons = {};
-SITE.ranked = null;          // null = categories.csv has no RANKED column, so everything ranks as before
-SITE.catNames = {};
-if (CATS.length && Object.prototype.hasOwnProperty.call(CATS[0], "RANKED")) SITE.ranked = {};
-CATS.forEach(r => {
-  const code = String(r.CODE || "").trim().toUpperCase();
-  const color = String(r.COLOR || "").trim();
-  const icon = String(r.ICON || "").trim();
-  if (!code) return;
-  if (/^#[0-9a-f]{3,8}$/i.test(color)) SITE.colors[code === "DEFAULT" ? "default" : code] = color;
-  if (icon && ICONS[icon]) SITE.icons[code] = icon;
-  if (window.MarkerFill) { const f = MarkerFill.fromRow(r, color); if (f) SITE.fills[code] = f; }
-  SITE.catNames[code] = String(r.LABEL || code).trim();
-  if (window.MarkerShapes && r.SHAPE) SITE.shapes[code] = MarkerShapes.slug(r.SHAPE);
-  if (SITE.ranked) SITE.ranked[code] = String(r.RANKED || "").trim().toLowerCase() === "yes";
-});
+  const [L,C,CATS,SHAPEROWS] = await Promise.all([
+    load(SITE.files.locations),
+    load(SITE.files.children),
+    load("categories.csv"),
+    load("shapes.csv")
+  ]);
+  if (window.MarkerShapes) SITE.customShapes = MarkerShapes.parseRows(SHAPEROWS);
+
+  SITE.icons = {};
+  SITE.ranked = null;
+  SITE.catNames = {};
+  if (CATS.length && Object.prototype.hasOwnProperty.call(CATS[0], "RANKED")) SITE.ranked = {};
+  CATS.forEach(r => {
+    const code = String(r.CODE || "").trim().toUpperCase();
+    const color = String(r.COLOR || "").trim();
+    const icon = String(r.ICON || "").trim();
+    if (!code) return;
+    if (/^#[0-9a-f]{3,8}$/i.test(color)) SITE.colors[code === "DEFAULT" ? "default" : code] = color;
+    if (icon && ICONS[icon]) SITE.icons[code] = icon;
+    if (window.MarkerFill) { const f = MarkerFill.fromRow(r, color); if (f) SITE.fills[code] = f; }
+    SITE.catNames[code] = String(r.LABEL || code).trim();
+    if (window.MarkerShapes && r.SHAPE) SITE.shapes[code] = MarkerShapes.slug(r.SHAPE);
+    if (SITE.ranked) SITE.ranked[code] = String(r.RANKED || "").trim().toLowerCase() === "yes";
+  });
+
   L.forEach(r => {
     const ll = [parseFloat(r.LONG), parseFloat(r.LAT)];
     if (!key(r.ID) || ll.some(isNaN)) { console.warn("Skipped location row:", r); return; }
@@ -1439,12 +1302,7 @@ CATS.forEach(r => {
     const id = (r.CHILD_ID || r.CHILD_IS || "").trim();
     const ll = [parseFloat(r.LONG), parseFloat(r.LAT)];
     const parent = places.find(p => key(p.id) === key(r.PARENT_ID));
-
-    if (!id || ll.some(isNaN) || !parent) {
-      console.warn("Skipped child row:", r);
-      return;
-    }
-
+    if (!id || ll.some(isNaN) || !parent) { console.warn("Skipped child row:", r); return; }
     const k = { id, name: r.NAME || id, ll, d:r, parent, off:[0,0] };
     parent.kids.push(k);
     kids.push(k);
@@ -1456,23 +1314,16 @@ CATS.forEach(r => {
   stops = places.concat(kids)
     .filter(i => parseFloat(i.d.TOUR) > 0)
     .sort((a,b) => parseFloat(a.d.TOUR) - parseFloat(b.d.TOUR));
-
   $("tour").hidden = !stops.length;
 
   await Promise.all([ loadPassportData(), initOverlays() ]);
   update();
   updatePassportUI();
   if (window.renderStampCards) renderStampCards();
+  if (window.__buildChips) window.__buildChips();
 });
 
-/* ============================================================
-   YEAR FILTER
-   ============================================================ */
-
-const yr4 = v => {
-  const m = /\d{4}/.exec(v || "");
-  return m ? +m[0] : null;
-};
+const yr4 = v => { const m = /\d{4}/.exec(v || ""); return m ? +m[0] : null; };
 
 function alive(i){
   if (year === null) return true;
@@ -1484,21 +1335,16 @@ function alive(i){
 function update(){
   const deep = !returning && map.getZoom() >= SITE.childZoom;
   const show = (i,v) => {
-  const cat = String((i.d && i.d.CATEGORY) || "").trim().toUpperCase();
-  const catHidden = window.catVisible && !window.catVisible(cat);
-  i.el.style.display = (v && alive(i) && !catHidden) ? "" : "none";
-};
-
+    const cat = String((i.d && i.d.CATEGORY) || "").trim().toUpperCase();
+    const catHidden = window.catVisible && !window.catVisible(cat);
+    i.el.style.display = (v && alive(i) && !catHidden) ? "" : "none";
+  };
   places.forEach(p => show(p, !focus && !(p.kids.length && deep)));
   kids.forEach(k => show(k, focus ? k.parent === focus : deep));
-
   declutter();
   drawLeaders();
 }
-
-/* ============================================================
-   LEADER LINE COLLISION DETECTION
-   ============================================================ */
+window.update = update;
 
 function segDist(px,py,ax,ay,bx,by){
   const dx = bx - ax, dy = by - ay;
@@ -1507,39 +1353,26 @@ function segDist(px,py,ax,ay,bx,by){
   return Math.hypot(px - ax - t*dx, py - ay - t*dy);
 }
 
-/* ============================================================
-   DECLUTTER MARKERS
-   ============================================================ */
-
 function declutter(){
   const rank = i => (i.kids && i.kids.length) ? 0 : (i.parent ? 2 : 1);
-
-  const vis = places.concat(kids)
-    .filter(i => i.el.style.display !== "none")
-    .sort((a,b) => rank(a) - rank(b));
-
+  const vis = places.concat(kids).filter(i => i.el.style.display !== "none").sort((a,b) => rank(a) - rank(b));
   const placed = [];
-
   vis.forEach(it => {
     const p = map.project(it.ll);
     const base = it.r + 12;
     const fixed = rank(it) === 0;
-
     let o = [0,-base];
     let bestScore = Infinity;
-
     search:
     for (let ring=0; ring<8; ring++){
       const R = base + ring*34;
       const n = ring ? 8 + ring*4 : 1;
-
       for (let i=0; i<n; i++){
         const step = Math.ceil(i/2) * (i%2 ? 1 : -1);
         const a = -Math.PI/2 + 2*Math.PI*step/n;
         const dx = Math.cos(a)*R, dy = Math.sin(a)*R;
         const t = { x: p.x + dx, y: p.y + dy };
         let pen = 0;
-
         if (!fixed) {
           placed.forEach(q => {
             pen += Math.max(0, q.r + it.r + 4 - Math.hypot(q.x - t.x, q.y - t.y));
@@ -1549,21 +1382,15 @@ function declutter(){
             }
           });
         }
-
         if (pen < bestScore) { bestScore = pen; o = [dx, dy]; }
         if (pen === 0) break search;
       }
     }
-
     it.off = o;
     it.marker.setOffset(o);
     placed.push({ x: p.x + o[0], y: p.y + o[1], r: it.r, tx: p.x, ty: p.y });
   });
 }
-
-/* ============================================================
-   DRAW LEADER LINES
-   ============================================================ */
 
 function drawLeaders(){
   let h = "";
@@ -1583,33 +1410,16 @@ function drawLeaders(){
 map.on("zoomend", update);
 map.on("render", drawLeaders);
 
-/* ============================================================
-   TOUR LINE
-   ============================================================ */
-
 function setTourLine(coords){
   if (map.getLayer("tour-line")) map.removeLayer("tour-line");
   if (map.getSource("tour-line")) map.removeSource("tour-line");
   if (!coords || coords.length < 2) return;
-
-  tourGeoJSON = {
-    type: "Feature",
-    geometry: { type: "LineString", coordinates: coords }
-  };
-
+  tourGeoJSON = { type: "Feature", geometry: { type: "LineString", coordinates: coords } };
   map.addSource("tour-line", { type: "geojson", data: tourGeoJSON });
-
   map.addLayer({
-    id: "tour-line",
-    type: "line",
-    source: "tour-line",
+    id: "tour-line", type: "line", source: "tour-line",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: {
-      "line-color": "#D55E00",
-      "line-width": 4,
-      "line-opacity": 0.75,
-      "line-dasharray": [2, 1.5]
-    }
+    paint: { "line-color": "#D55E00", "line-width": 4, "line-opacity": 0.75, "line-dasharray": [2, 1.5] }
   }, "boundary");
 }
 
@@ -1619,20 +1429,14 @@ function clearTourLine(){
   tourGeoJSON = null;
 }
 
-/* ============================================================
-   VEHICLE TRAVEL
-   ============================================================ */
-
-// Tour vehicles and passport emblems now come from icons.js (one list for everything)
-function vehicleSVG(key){
-  const i = ICONS[key] || ICONS.train;
+function vehicleSVG(k){
+  const i = ICONS[k] || ICONS.train;
   return `<svg viewBox="${i.vb}" width="60" height="30" aria-hidden="true">${i.art}</svg>`;
 }
-// Keeps the old VEHICLE_SVG["train"] style lookups working everywhere else in the page
 const VEHICLE_SVG = new Proxy({}, {
   get: (_, k) => (typeof k === "string" && Object.prototype.hasOwnProperty.call(ICONS, k)) ? vehicleSVG(k) : undefined
 });
-const SCENE_CLASS = { rail: "rail", water: "boat", road: "car" };   // icons.js "scene" -> the scenery CSS you already have
+const SCENE_CLASS = { rail: "rail", water: "boat", road: "car" };
 
 const VEHICLE_PUFF = `
   <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
@@ -1647,8 +1451,7 @@ function travelTo(fromLl, toLl, vehicleKey){
       setTimeout(resolve, 600);
       return;
     }
-
-       const v = ICONS[vehicleKey] ? vehicleKey : "train";
+    const v = ICONS[vehicleKey] ? vehicleKey : "train";
     const meta = ICONS[v];
     const wrap = document.createElement("div");
     wrap.className = "travel-clip " + (SCENE_CLASS[meta.scene] || "");
@@ -1658,24 +1461,17 @@ function travelTo(fromLl, toLl, vehicleKey){
         <div class="vehicle">${vehicleSVG(v)}</div>
         ${meta.puff ? `<div class="puff">${VEHICLE_PUFF}</div>` : ""}
       </div>`;
-
-    const marker = new maplibregl.Marker({ element: wrap, anchor: "center" })
-      .setLngLat(fromLl)
-      .addTo(map);
-
+    const marker = new maplibregl.Marker({ element: wrap, anchor: "center" }).setLngLat(fromLl).addTo(map);
     const midZoom = Math.max(map.getZoom() - 0.3, 14.5);
     map.jumpTo({ center: fromLl, zoom: midZoom });
-
     const t0 = performance.now();
     const DURATION = 1100;
-
     function frame(now){
       const t = Math.min((now - t0) / DURATION, 1);
       const lng = fromLl[0] + (toLl[0] - fromLl[0]) * t;
       const lat = fromLl[1] + (toLl[1] - fromLl[1]) * t;
       marker.setLngLat([lng, lat]);
       map.jumpTo({ center: [lng, lat] });
-
       if (t < 1) requestAnimationFrame(frame);
       else {
         marker.remove();
@@ -1687,27 +1483,19 @@ function travelTo(fromLl, toLl, vehicleKey){
   });
 }
 
-/* ============================================================
-   SELECT PLACE
-   ============================================================ */
-
 function select(it){
   window.sel = it;
   window.__sel = it;
   if (tourI >= 0 && stops[tourI] !== it) tourI = -1;
-
   if (!sel && !prev) prev = { center: map.getCenter(), zoom: map.getZoom() };
-
   sel = it;
   places.concat(kids).forEach(i => i.el.classList.toggle("sel", i === it));
-
   unlockStamp(it.id);
   if (window.passportEvent) passportEvent("view", {
     id: it.id,
     category: (it.d && it.d.CATEGORY) || null,
     source: it.parent ? "childmarkers" : "locations"
   });
-
   if (it.kids && it.kids.length) {
     focus = it;
     const b = new maplibregl.LngLatBounds();
@@ -1717,10 +1505,8 @@ function select(it){
     focus = it.parent || null;
     map.easeTo({ center: it.ll, zoom: Math.max(map.getZoom(), it.parent ? 17 : 15) });
   }
-
   const d = it.d;
   const panel = $("panel");
-
   panel.innerHTML =
     `<button id="x" aria-label="Close">&times;</button>` +
     `<h2>${esc(it.name)}</h2>` +
@@ -1731,47 +1517,33 @@ function select(it){
       ? "<h3>Places here</h3>" +
         it.kids.map(k => `<button class="kid" data-id="${esc(k.id)}">${esc(k.name)}</button>`).join("")
       : "");
-
   const cov = thumb(it.id, d.CATEGORY, coverPath(it.id, d.PHOTO));
   cov.dataset.caption = coverNote(it.id);
   panel.insertBefore(cov, panel.querySelector("h2"));
   if (coverNote(it.id)) { const s = document.createElement("small"); s.className = "covernote"; s.textContent = coverNote(it.id); cov.after(s); }
   const gal = buildGallery(it.id);
   if (gal) panel.appendChild(gal);
-
   const e = yr4(d.EST);
   const c = yr4(d.CLSD);
-
-  const when = [
-    e ? "Established " + e : "",
-    c ? "Closed " + c : (e ? "Still standing" : "")
-  ].filter(Boolean).join(" &middot; ");
-
+  const when = [e ? "Established " + e : "", c ? "Closed " + c : (e ? "Still standing" : "")].filter(Boolean).join(" &middot; ");
   if (when) panel.querySelector("h2").insertAdjacentHTML("afterend", `<p><b>${when}</b></p>`);
-
   if (SITE.memoryUrl) {
     const m = SITE.memoryUrl.startsWith("mailto:")
       ? SITE.memoryUrl + "?subject=" + encodeURIComponent("Memory of " + it.name + " (" + it.id + ")")
       : SITE.memoryUrl;
-
     panel.insertAdjacentHTML("beforeend",
       `<p><a href="${esc(m)}" target="_blank" rel="noopener">Do you have a memory or photo of this place? Share it</a></p>`);
   }
-
   if (tourI >= 0 && stops[tourI] === it) {
     panel.insertAdjacentHTML("beforeend",
       `<p><b>Tour stop ${tourI + 1} of ${stops.length}</b></p>` +
       `<button class="kid" data-t="-1" ${tourI ? "" : "disabled"}>&larr; Back</button>` +
       `<button class="kid" data-t="1" ${tourI < stops.length - 1 ? "" : "disabled"}>Next: ${esc((stops[tourI + 1] || {}).name || "end of tour")} &rarr;</button>`);
   }
-
   panel.hidden = false;
   update();
 }
-
-/* ============================================================
-   DESELECT
-   ============================================================ */
+window.select = select;
 
 function deselect(){
   if (!sel) return;
@@ -1779,25 +1551,17 @@ function deselect(){
   $("panel").hidden = true;
   clearTourLine();
   places.concat(kids).forEach(i => i.el.classList.remove("sel"));
-
   if (prev) {
     returning = true;
     update();
     map.flyTo({ center: prev.center, zoom: prev.zoom });
     prev = null;
     map.once("moveend", () => { returning = false; update(); });
-  } else {
-    update();
-  }
+  } else { update(); }
 }
-
-/* ============================================================
-   PANEL / MAP EVENTS
-   ============================================================ */
 
 $("panel").onclick = async e => {
   if (e.target.closest("#x")) { deselect(); return; }
-
   const t = e.target.closest("[data-t]");
   if (t && !t.disabled) {
     if (travelInProgress) return;
@@ -1806,17 +1570,12 @@ $("panel").onclick = async e => {
       const from = stops[tourI];
       const to   = stops[tourI + +t.dataset.t];
       if (!from || !to) return;
-
       const vehicle = (from.d.VEHICLE || stops[tourI].d.VEHICLE || "train").trim().toLowerCase();
       await travelTo(from.ll, to.ll, vehicle);
-
       tourGo(tourI + +t.dataset.t);
-    } finally {
-      travelInProgress = false;
-    }
+    } finally { travelInProgress = false; }
     return;
   }
-
   const b = e.target.closest(".kid");
   if (b) {
     const k = kids.find(x => x.id === b.dataset.id);
@@ -1840,15 +1599,7 @@ function tourGo(n){
   }
 }
 
-$("tour").onclick = () => {
-  const coords = stops.map(s => s.ll);
-  setTourLine(coords);
-  tourGo(0);
-};
-
-/* ============================================================
-   YEAR SLIDER
-   ============================================================ */
+$("tour").onclick = () => { setTourLine(stops.map(s => s.ll)); tourGo(0); };
 
 $("yr").min = SITE.yearMin;
 $("yr").max = SITE.yearMax;
@@ -1870,17 +1621,16 @@ function buildYearTicks(){
 }
 buildYearTicks();
 
-/* ---------- More button (phones) ---------- */
 function closeMore(){
   $("tools").classList.remove("open");
   $("moreBtn").setAttribute("aria-expanded", "false");
   $("moreBtn").innerHTML = "More &#9662;";
 }
-function updateMoreDot(){   // a dot on More when something inside it is switched on
+function updateMoreDot(){
   const on = $("aerialBtn").getAttribute("aria-pressed") === "true" || year !== null || (!$("ovw").hidden && +$("ov").value > 0);
   $("moreBtn").classList.toggle("on", on);
 }
-function syncMoreBtn(){     // hide More when everything inside it is turned off in settings
+function syncMoreBtn(){
   const any = [...$("toolsMore").children].some(el => !el.hidden && el.style.display !== "none");
   $("moreBtn").hidden = !any;
   if (!any) closeMore();
@@ -1904,10 +1654,6 @@ $("yr").oninput = e => {
   update();
 };
 
-/* ============================================================
-   OLD MAP OVERLAYS
-   ============================================================ */
-
 async function initOverlays(){
   await SETTINGS_READY;
   if (!SITE.overlaySlider) return;
@@ -1917,9 +1663,7 @@ async function initOverlays(){
       const loaded = await res.json();
       if (Array.isArray(loaded) && loaded.length) SITE.overlays = loaded;
     }
-  } catch (e) {
-    console.warn("Couldn't load overlays.json — using SITE.overlays fallback", e);
-  }
+  } catch (e) { console.warn("Couldn't load overlays.json", e); }
 
   const o = SITE.overlays;
   if (!o.length) return;
@@ -1932,65 +1676,41 @@ async function initOverlays(){
     }, "boundary");
   });
 
-  $("ovs").innerHTML = o.map((x,n) =>
-    `<option value="${n}">${esc(x.name)}</option>`
-  ).join("");
-
+  $("ovs").innerHTML = o.map((x,n) => `<option value="${n}">${esc(x.name)}</option>`).join("");
   $("ovs").hidden = o.length < 2;
   $("ovw").hidden = false;
   syncMoreBtn();
 
   const apply = () => o.forEach((x,n) =>
-    map.setPaintProperty("ov" + n, "raster-opacity",
-      n == $("ovs").value ? $("ov").value / 100 : 0)
+    map.setPaintProperty("ov" + n, "raster-opacity", n == $("ovs").value ? $("ov").value / 100 : 0)
   );
-
-  $("ov").oninput = () => { apply(); updateMoreDot(); };
-  $("ovs").onchange = apply;
+  $("ov").oninput = () => { apply(); updateMoreDot(); if (window.__updateWipe) window.__updateWipe(); };
+  $("ovs").onchange = () => { apply(); if (window.__updateWipe) window.__updateWipe(); };
 }
-
-/* ============================================================
-   NEAR ME
-   ============================================================ */
 
 $("near").onclick = () => {
   const r = $("res");
   const say = t => { r.innerHTML = `<li style="padding:10px">${t}</li>`; r.hidden = false; };
-
   if (!navigator.geolocation) { say("Location isn't available on this device."); return; }
   say("Finding you...");
-
   navigator.geolocation.getCurrentPosition(
     pos => {
       const ll = [pos.coords.longitude, pos.coords.latitude];
       const b = SITE.maxBounds;
-      if (ll[0] < b[0][0] || ll[0] > b[1][0] || ll[1] < b[0][1] || ll[1] > b[1][1]) {
-        say("You appear to be outside the map area."); return;
-      }
+      if (ll[0] < b[0][0] || ll[0] > b[1][0] || ll[1] < b[0][1] || ll[1] > b[1][1]) { say("You appear to be outside the map area."); return; }
       if (me) me.remove();
-
       const dot = document.createElement("div");
       dot.style.cssText = "width:16px;height:16px;border-radius:50%;background:#0072B2;border:3px solid #fff;box-shadow:0 0 0 2px #0072B2";
       me = new maplibregl.Marker({ element: dot }).setLngLat(ll).addTo(map);
-
       const mi = c => {
         const q = Math.PI / 180;
-        const a = Math.sin((c[1]-ll[1])*q/2)**2 +
-                  Math.cos(ll[1]*q)*Math.cos(c[1]*q)*Math.sin((c[0]-ll[0])*q/2)**2;
+        const a = Math.sin((c[1]-ll[1])*q/2)**2 + Math.cos(ll[1]*q)*Math.cos(c[1]*q)*Math.sin((c[0]-ll[0])*q/2)**2;
         return 2 * 3958.8 * Math.asin(Math.sqrt(a));
       };
-
-      const hits = places.concat(kids).filter(alive)
-        .map(h => ({ i:h, d:mi(h.ll) }))
-        .sort((a,b) => a.d - b.d).slice(0,5);
-
+      const hits = places.concat(kids).filter(alive).map(h => ({ i:h, d:mi(h.ll) })).sort((a,b) => a.d - b.d).slice(0,5);
       r._hits = hits.map(h => h.i);
-      r.innerHTML =
-        "<li style='padding:8px 10px;font-size:12px'>Nearest to you (approximate; not for navigation)</li>" +
-        hits.map((h,n) =>
-          `<li><button data-i="${n}">${esc(h.i.name)} <small>${h.d < 0.1 ? Math.round(h.d*5280) + " ft" : h.d.toFixed(1) + " mi"}</small></button></li>`
-        ).join("");
-
+      r.innerHTML = "<li style='padding:8px 10px;font-size:12px'>Nearest to you (approximate; not for navigation)</li>" +
+        hits.map((h,n) => `<li><button data-i="${n}">${esc(h.i.name)} <small>${h.d < 0.1 ? Math.round(h.d*5280) + " ft" : h.d.toFixed(1) + " mi"}</small></button></li>`).join("");
       map.easeTo({ center: ll, zoom: Math.max(map.getZoom(), 15) });
     },
     () => say("Couldn't get your location. Check your browser's location permission."),
@@ -1998,24 +1718,14 @@ $("near").onclick = () => {
   );
 };
 
-/* ============================================================
-   SEARCH
-   ============================================================ */
-
 $("q").oninput = e => {
   const s = e.target.value.trim().toLowerCase();
   const r = $("res");
   if (!s) { r.hidden = true; return; }
-
   const hits = places.concat(kids).filter(i =>
-    (i.name + " " + (i.d.HIST_NAMES || "") + " " + (i.d.ADDRESS || ""))
-      .toLowerCase().includes(s)
+    (i.name + " " + (i.d.HIST_NAMES || "") + " " + (i.d.ADDRESS || "")).toLowerCase().includes(s)
   ).slice(0,8);
-
-  r.innerHTML =
-    hits.map((h,i) => `<li><button data-i="${i}">${esc(h.name)}</button></li>`).join("") ||
-    "<li style='padding:10px'>No matches</li>";
-
+  r.innerHTML = hits.map((h,i) => `<li><button data-i="${i}">${esc(h.name)}</button></li>`).join("") || "<li style='padding:10px'>No matches</li>";
   r._hits = hits;
   r.hidden = false;
 };
@@ -2025,35 +1735,25 @@ $("res").onclick = e => {
   if (b) { select($("res")._hits[b.dataset.i]); $("res").hidden = true; }
 };
 
-/* ============================================================
-   QR SPOTS
-   ============================================================ */
+/* QR SPOTS */
 (function () {
   const id = new URLSearchParams(location.search).get("spot");
   if (!id) return;
-
   const box = $("spotBox");
   const close = () => { box.hidden = true; };
-  const explore = close;
-
   $("sp-x").onclick = close;
-  $("sp-go").onclick = explore;
+  $("sp-go").onclick = close;
   box.onclick = e => { if (e.target === box) close(); };
   document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
-
   map.once("load", async () => {
     const r = (await load("spots.csv")).find(x => key(x.SPOT_ID) === key(id));
-    if (!r) { console.warn("No spot called " + id + " in spots.csv"); return; }
-
+    if (!r) { console.warn("No spot called " + id); return; }
     const ll = [parseFloat(r.LONG), parseFloat(r.LAT)];
     if (ll.some(isNaN)) { console.warn("Spot " + id + " has bad coordinates"); return; }
-
     map.jumpTo({ center: ll, zoom: 18 });
-
     const pin = document.createElement("div");
     pin.className = "spotpin";
     new maplibregl.Marker({ element: pin }).setLngLat(ll).addTo(map);
-
     const qcp = coverPath(id, r.PHOTO);
     $("sp-img").hidden = !qcp;
     if (qcp) $("sp-img").src = assetUrl(qcp);
@@ -2065,21 +1765,15 @@ $("res").onclick = e => {
     const qGal = buildGallery(id);
     if (qGal) $("sp-credit").after(qGal);
     box.hidden = false;
-
     unlockStamp(id);
     if (window.passportEvent) passportEvent(key(r.KIND) === "story" ? "story" : "spot", {
-      id: id,
-      category: r.CATEGORY || null,
-      source: "qr"
+      id, category: r.CATEGORY || null, source: "qr"
     });
   });
 })();
 
-/* ============================================================
-   PHOTO SPOTS, STORIES, TOURS
-   ============================================================ */
+/* PHOTO SPOTS, STORIES, TOURS */
 (function () {
-
   document.head.insertAdjacentHTML("beforeend", `<style>
 .kmark{width:44px;height:44px;border:0;background:none;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .kmark svg{filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 2px #fff)}
@@ -2108,7 +1802,6 @@ $("res").onclick = e => {
   let T = null;
   let ti = 0;
   let ring = null;
-
   const box = $("spotBox");
 
   function setSpotUrl(id) {
@@ -2120,20 +1813,17 @@ $("res").onclick = e => {
     } catch (e) {}
   }
 
-  new MutationObserver(() => { if (box.hidden) setSpotUrl(null); })
-    .observe(box, { attributes: true, attributeFilter: ["hidden"] });
+  new MutationObserver(() => { if (box.hidden) setSpotUrl(null); }).observe(box, { attributes: true, attributeFilter: ["hidden"] });
 
   if (!new URLSearchParams(location.search).has("spot")) {
     $("sp-x").onclick = $("sp-go").onclick = () => { box.hidden = true; };
     box.onclick = e => { if (e.target === box) box.hidden = true; };
   }
-
   document.addEventListener("keydown", e => { if (e.key === "Escape") box.hidden = true; });
 
   function showSpot(it) {
     const r = it.r;
     const cp = coverPath(it.id, r.PHOTO);
-
     const holder = $("sp-img").parentNode;
     let wrap = holder.querySelector(".photo-anim");
     if (!wrap) {
@@ -2142,17 +1832,13 @@ $("res").onclick = e => {
       $("sp-img").parentNode.insertBefore(wrap, $("sp-img"));
       wrap.appendChild($("sp-img"));
       const v = document.createElement("video");
-      v.muted = true;
-      v.playsInline = true;
-      v.preload = "metadata";
-      v.hidden = true;
+      v.muted = true; v.playsInline = true; v.preload = "metadata"; v.hidden = true;
       wrap.appendChild(v);
     }
     const vid = wrap.querySelector("video");
     vid.pause();
     vid.hidden = true;
     vid.removeAttribute("src");
-
     if (cp) {
       $("sp-img").hidden = false;
       $("sp-img").src = assetUrl(cp);
@@ -2165,16 +1851,11 @@ $("res").onclick = e => {
         vid.src = path;
         vid.load();
       }
-    } else {
-      $("sp-img").hidden = true;
-    }
-
+    } else { $("sp-img").hidden = true; }
     $("sp-title").textContent = r.TITLE || "";
     $("sp-when").textContent = r.YEAR || "";
     $("sp-text").textContent = r.DETAILS || "";
-    $("sp-credit").textContent =
-      [coverNote(it.id, r.CREDIT) || (r.CREDIT ? "Photo: " + r.CREDIT : ""), r.SOURCE ? "Source: " + r.SOURCE : ""]
-        .filter(Boolean).join(" · ");
+    $("sp-credit").textContent = [coverNote(it.id, r.CREDIT) || (r.CREDIT ? "Photo: " + r.CREDIT : ""), r.SOURCE ? "Source: " + r.SOURCE : ""].filter(Boolean).join(" · ");
     $("sp-img").dataset.caption = coverNote(it.id);
     const oldGal = $("spotCard").querySelector(".gal");
     if (oldGal) oldGal.remove();
@@ -2182,26 +1863,18 @@ $("res").onclick = e => {
     if (gal) $("sp-credit").after(gal);
     box.hidden = false;
     setSpotUrl(it.id);
-
     unlockStamp(it.id);
-    if (window.passportEvent) passportEvent(it.kind, {
-      id: it.id,
-      category: it.r.CATEGORY || null,
-      source: "spots"
-    });
+    if (window.passportEvent) passportEvent(it.kind, { id: it.id, category: it.r.CATEGORY || null, source: "spots" });
   }
 
   const vis = () => {
     const z = map.getZoom();
-    items.forEach(i => {
-      if (i.el) i.el.style.display = (showAll || z >= 16) ? "" : "none";
-    });
+    items.forEach(i => { if (i.el) i.el.style.display = (showAll || z >= 16) ? "" : "none"; });
   };
 
   const byId = id => {
     const k = key(id);
-    return places.concat(kids).find(p => key(p.id) === k) ||
-           items.find(i => key(i.id) === k);
+    return places.concat(kids).find(p => key(p.id) === k) || items.find(i => key(i.id) === k);
   };
 
   function clearHi() { if (ring) { ring.remove(); ring = null; } }
@@ -2209,14 +1882,11 @@ $("res").onclick = e => {
   function go(n) {
     ti = n;
     clearHi();
-
     const st = T.stops[n];
     const it = byId(st.ITEM_ID);
     const card = $("tourCard");
-
     let name = "Missing item: " + st.ITEM_ID;
     let when = "", text = "", credit = "", ll = null, img = null;
-
     if (it && it.r) {
       const r = it.r;
       const cp = coverPath(it.id, r.PHOTO);
@@ -2232,25 +1902,19 @@ $("res").onclick = e => {
         still.src = assetUrl(cp);
         still.onerror = () => { still.remove(); };
         wrap.appendChild(still);
-
         const m = /(?:^|\/)([^/]+)\.(jpe?g|png|webp)$/i.exec(cp);
         if (m) {
           const v = document.createElement("video");
-          v.muted = true;
-          v.playsInline = true;
-          v.preload = "metadata";
-          v.hidden = true;
+          v.muted = true; v.playsInline = true; v.preload = "metadata"; v.hidden = true;
           v.onloadeddata = () => { v.hidden = false; v.play().catch(() => { v.hidden = true; }); };
           v.onended      = () => { v.hidden = true; };
           v.onerror      = () => { v.hidden = true; };
           v.src = assetUrl("anims/" + m[1] + ".mp4");
           wrap.appendChild(v);
         }
-
         img = wrap;
       }
-      credit = [coverNote(it.id, r.CREDIT) || (r.CREDIT ? "Photo: " + r.CREDIT : ""), r.SOURCE ? "Source: " + r.SOURCE : ""]
-        .filter(Boolean).join(" · ");
+      credit = [coverNote(it.id, r.CREDIT) || (r.CREDIT ? "Photo: " + r.CREDIT : ""), r.SOURCE ? "Source: " + r.SOURCE : ""].filter(Boolean).join(" · ");
       unlockStamp(it.id);
     } else if (it) {
       name = it.name;
@@ -2260,20 +1924,15 @@ $("res").onclick = e => {
       credit = coverNote(it.id);
       unlockStamp(it.id);
     }
-
     if (ll) {
       focus = (it && it.parent) || null;
       update();
-
       const d = document.createElement("div");
       d.className = "tring";
       ring = new maplibregl.Marker({ element: d }).setLngLat(ll).addTo(map);
-
       map.flyTo({ center: ll, zoom: Math.max(map.getZoom(), 17) });
     }
-
     const nxt = T.stops[n + 1] && byId(T.stops[n + 1].ITEM_ID);
-
     card.innerHTML =
       `<h2></h2>` +
       `<small id="tw"></small>` +
@@ -2284,32 +1943,22 @@ $("res").onclick = e => {
       `<button class="kid" data-g="-1" ${n ? "" : "disabled"}>&larr; Back</button>` +
       `<button class="kid" data-g="1" ${n < T.stops.length - 1 ? "" : "disabled"}>Next: ${esc(nxt ? (nxt.r ? nxt.r.TITLE : nxt.name) : "end of tour")} &rarr;</button>` +
       `<button class="kid" data-g="x">End tour</button>`;
-
     card.querySelector("h2").textContent = name;
     $("tw").textContent = when;
     $("tt").textContent = text;
     card.querySelector("#tn i").textContent = st.NOTE || "";
     $("tc").textContent = credit;
-
     if (img) card.insertBefore(img, card.firstChild);
     card.hidden = false;
-
     if (n === T.stops.length - 1 && window.passportEvent) {
-      passportEvent("tour", {
-        id: T.id,
-        category: T.category || null,
-        source: "tours"
-      });
+      passportEvent("tour", { id: T.id, category: T.category || null, source: "tours" });
     }
   }
 
   function listTours() {
     const card = $("tourCard");
-    card.innerHTML =
-      `<h2>Tours</h2>` +
-      tours.map((t,i) =>
-        `<button class="kid" data-t="${i}"><b>${esc(t.title)}</b><br><small>${esc(t.intro)} (${t.stops.length} stops)</small></button>`
-      ).join("") +
+    card.innerHTML = `<h2>Tours</h2>` +
+      tours.map((t,i) => `<button class="kid" data-t="${i}"><b>${esc(t.title)}</b><br><small>${esc(t.intro)} (${t.stops.length} stops)</small></button>`).join("") +
       `<button class="kid" data-g="x">Close</button>`;
     card.hidden = false;
   }
@@ -2337,13 +1986,9 @@ $("res").onclick = e => {
   $("tourCard").onclick = async e => {
     const t = e.target.closest("[data-t]");
     const g = e.target.closest("[data-g]");
-
     if (t) {
       T = tours[+t.dataset.t];
-      const coords = T.stops.map(st => {
-        const it = byId(st.ITEM_ID);
-        return it && it.ll ? it.ll : null;
-      }).filter(Boolean);
+      const coords = T.stops.map(st => { const it = byId(st.ITEM_ID); return it && it.ll ? it.ll : null; }).filter(Boolean);
       setTourLine(coords);
       go(0);
     } else if (g && !g.disabled) {
@@ -2363,20 +2008,13 @@ $("res").onclick = e => {
           const vehicle = (T.stops[ti].VEHICLE || "train").trim().toLowerCase();
           if (fromIt && toIt) await travelTo(fromIt.ll, toIt.ll, vehicle);
           go(ti + +g.dataset.g);
-        } finally {
-          travelInProgress = false;
-        }
+        } finally { travelInProgress = false; }
       }
     }
   };
 
   map.once("load", async () => {
-    const [S, TR, TS] = await Promise.all([
-      load("spots.csv"),
-      load("tours.csv"),
-      load("tourstops.csv")
-    ]);
-
+    const [S, TR, TS] = await Promise.all([load("spots.csv"), load("tours.csv"), load("tourstops.csv")]);
     S.forEach(r => {
       const id = (r.SPOT_ID || "").trim();
       if (!id) return;
@@ -2384,7 +2022,6 @@ $("res").onclick = e => {
       const ll = [parseFloat(r.LONG), parseFloat(r.LAT)];
       const ok = !ll.some(isNaN);
       const it = { id, r, kind, ll: ok ? ll : null };
-
       if (ok) {
         const b = document.createElement("button");
         b.type = "button";
@@ -2395,25 +2032,19 @@ $("res").onclick = e => {
         it.el = b;
         it.marker = new maplibregl.Marker({ element: b }).setLngLat(ll).addTo(map);
       }
-
       items.push(it);
     });
-
     TR.forEach(r => {
       const id = (r.TOUR_ID || "").trim();
       if (!id) return;
-      const stops = TS
-        .filter(x => key(x.TOUR_ID) === key(id))
-        .sort((a,b) => parseFloat(a.STEP) - parseFloat(b.STEP));
+      const stops = TS.filter(x => key(x.TOUR_ID) === key(id)).sort((a,b) => parseFloat(a.STEP) - parseFloat(b.STEP));
       tours.push({ id, title: r.TITLE || id, intro: r.INTRO || "", category: r.CATEGORY || null, stops });
     });
-
     $("tours").hidden = !tours.length;
     vis();
     map.on("zoomend", vis);
   });
 
-  /* ---- used by the passport drawer: "show me" buttons and tapping a stamp ---- */
   const fitPoints = (pts, maxZoom) => {
     const b = new maplibregl.LngLatBounds();
     pts.forEach(p => b.extend(p));
@@ -2424,7 +2055,7 @@ $("res").onclick = e => {
     it.el.classList.add("spot");
     setTimeout(() => it.el.classList.remove("spot"), 7000);
   };
-  window.passportReveal = kind => {                 // show all stories (or all photo spots) on the map
+  window.passportReveal = kind => {
     showAll = true;
     $("stories").setAttribute("aria-pressed", true);
     $("stories").textContent = "Hide Stories / Spots";
@@ -2432,14 +2063,14 @@ $("res").onclick = e => {
     fitPoints(items.filter(i => i.ll && i.kind === kind).map(i => i.ll), 17);
   };
   window.passportOpenTours = () => listTours();
-  window.passportShowCategory = code => {           // frame every place, story and spot in a category
+  window.passportShowCategory = code => {
     const c = key(code);
     const pts = places.concat(kids).filter(p => key(p.d.CATEGORY) === c).map(p => p.ll)
       .concat(items.filter(i => i.ll && key(i.r.CATEGORY) === c).map(i => i.ll));
     focus = null; update();
     fitPoints(pts, 17);
   };
-  window.passportShow = id => {                     // fly to one place / story / spot, or start a tour
+  window.passportShow = id => {
     const k = key(id);
     const ti = tours.findIndex(t => key(t.id) === k);
     if (ti >= 0) {
@@ -2455,14 +2086,12 @@ $("res").onclick = e => {
     pulse(it);
     return true;
   };
-
 })();
 
 /* ============================================================
-   PHOTO LIGHTBOX & INITIALIZATION
+   PHOTO LIGHTBOX
    ============================================================ */
 (function () {
-
   const view    = document.getElementById("imgView");
   const imgEl   = document.getElementById("lightboxImg");
   const vidEl   = document.getElementById("lightboxVid");
@@ -2470,7 +2099,6 @@ $("res").onclick = e => {
   const prevBtn = view.querySelector(".lb-prev");
   const nextBtn = view.querySelector(".lb-next");
 
-  // The lightbox holds a group of photos + an index, so < > can step through them.
   let group = [];
   let gi = 0;
   let currentSrc = null;
@@ -2481,9 +2109,6 @@ $("res").onclick = e => {
     return m ? assetUrl("anims/" + m[1] + ".mp4") : null;
   }
 
-  // Collect every real photo in the same card as the one that was clicked.
-  // Icons (is-default) and duplicated sources are skipped. Order matches DOM order,
-  // so the cover comes first, then the gallery shots.
   function collectGroup(im) {
     const holder = im.closest("#panel, #spotCard, #tourCard");
     if (!holder) return [im];
@@ -2511,26 +2136,21 @@ $("res").onclick = e => {
     gi = 0;
   }
 
-  // Show the photo at index i (wraps around), with its own caption and optional anim video
   function showAt(i) {
     if (!group.length) return;
     gi = (i + group.length) % group.length;
-
     const im = group[gi];
     const photo = im.currentSrc || im.src;
     imgEl.src = photo;
     imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = photo; };
     currentSrc = photo;
-
     const text = im.dataset.caption || "";
     caption.textContent = text;
     caption.style.display = text ? "block" : "none";
-
     vidEl.hidden = true;
     vidEl.pause();
     vidEl.removeAttribute("src");
     playing = false;
-
     const anim = animPathFor(photo);
     if (anim) {
       vidEl.onloadeddata = () => {
@@ -2543,27 +2163,22 @@ $("res").onclick = e => {
       vidEl.src = anim;
       vidEl.load();
     }
-
     const multi = group.length > 1;
     prevBtn.hidden = !multi;
     nextBtn.hidden = !multi;
   }
 
-  // openLightbox is list + index aware. Kept backward-compatible:
-  // if something else calls it with a single src string, we wrap it as a one-item group.
   function openLightbox(listOrSrc, indexOrFallback, text) {
     if (Array.isArray(listOrSrc)) {
       group = listOrSrc;
       const cap = (group[indexOrFallback] && group[indexOrFallback].dataset.caption) || text || "";
       view.hidden = false;
       showAt(indexOrFallback);
-      // If showAt fell back to the element's dataset caption, the passed text is a better default
       if (!group[gi].dataset.caption && cap) {
         caption.textContent = cap;
         caption.style.display = cap ? "block" : "none";
       }
     } else {
-      // Backward-compat: single src path used by anything that hasn't been updated
       group = [];
       const fake = { currentSrc: listOrSrc, src: listOrSrc, dataset: { caption: text || "" }, classList: { contains: () => false } };
       group = [fake];
@@ -2572,26 +2187,16 @@ $("res").onclick = e => {
     }
   }
 
-  // Build a group from the clicked image's card and pass it through
   document.addEventListener("click", e => {
     const im = e.target.closest("#panel img, #spotCard img, #tourCard img, .photo-anim img");
     if (!im) return;
-    if (im.classList.contains("is-default")) return;   // icons don't open the lightbox
-
+    if (im.classList.contains("is-default")) return;
     e.preventDefault();
     e.stopPropagation();
-
     const holder = im.closest("#panel, #spotCard, #tourCard");
     const h2 = holder && holder.querySelector("h2");
     const fallbackCaption = im.dataset.caption || (h2 ? h2.textContent : "");
-
-    // If the click landed inside the tour card's .photo-anim wrapper, only that one photo
-    // is "in the group" for the tour card, since the tour card shows one stop at a time.
-    if (holder && holder.id === "tourCard") {
-      openLightbox([im], 0, fallbackCaption);
-      return;
-    }
-
+    if (holder && holder.id === "tourCard") { openLightbox([im], 0, fallbackCaption); return; }
     const grp = collectGroup(im);
     const idx = grp.indexOf(im);
     openLightbox(grp, idx < 0 ? 0 : idx, fallbackCaption);
@@ -2601,16 +2206,9 @@ $("res").onclick = e => {
     if (playing) { vidEl.pause(); vidEl.hidden = true; playing = false; return; }
     closeView();
   });
-
-  view.querySelector(".close-lightbox").addEventListener("click", e => {
-    e.stopPropagation();
-    closeView();
-  });
-
-  // Arrow button handlers (stopPropagation so the backdrop click doesn't also close)
+  view.querySelector(".close-lightbox").addEventListener("click", e => { e.stopPropagation(); closeView(); });
   prevBtn.addEventListener("click", e => { e.stopPropagation(); showAt(gi - 1); });
   nextBtn.addEventListener("click", e => { e.stopPropagation(); showAt(gi + 1); });
-
   document.addEventListener("keydown", e => {
     if (e.key === "Escape" && !view.hidden) { closeView(); e.stopPropagation(); return; }
     if (view.hidden) return;
@@ -2626,16 +2224,10 @@ $("res").onclick = e => {
       clearInterval(t);
       if (!places.length) return;
       if (!SITE.fitMarkers) return;
-
       const b = new maplibregl.LngLatBounds();
       places.forEach(p => b.extend(p.ll));
-
-      const cam = map.cameraForBounds(b, {
-        padding: { top: 160, bottom: 60, left: 40, right: 40 },
-        maxZoom: 15
-      });
+      const cam = map.cameraForBounds(b, { padding: { top: 160, bottom: 60, left: 40, right: 40 }, maxZoom: 15 });
       if (!cam) return;
-
       SITE.center = [cam.center.lng, cam.center.lat];
       SITE.zoom = cam.zoom;
       map.jumpTo({ center: SITE.center, zoom: SITE.zoom });
@@ -2646,10 +2238,9 @@ $("res").onclick = e => {
 })();
 
 /* ============================================================
-   PASSPORT — stamps & tasks (reads stamps.csv + tasks.csv)
+   PASSPORT — stamps & tasks
    ============================================================ */
 (function () {
-
   const STAMP_KEY = "connersville_stamps_v2" + KEY_SUFFIX;
   const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const LAST_STARS_KEY = "connersville_last_stars" + KEY_SUFFIX;
@@ -2664,21 +2255,17 @@ $("res").onclick = e => {
     if (n >= t1) return 1;
     return 0;
   }
-
   function rankFor(row, stars){
     if (stars === 3) return row.RANK3 || "";
     if (stars === 2) return row.RANK2 || "";
     if (stars === 1) return row.RANK1 || "";
     return "";
   }
-
   function countFor(stamp){
     const p = loadProgress();
     const bucket = p[String(stamp.row.STAMP_ID).trim()] || {};
     return stamp.tasks.filter(id => (p._done && p._done[id]) || bucket[id]).length;
   }
-
-  // Is this rank track switched on? Needs the master switch on AND its category set to ranked.
   function isRanked(cat){
     if (!SITE.ranked) return true;
     const c = String(cat || "").trim().toUpperCase();
@@ -2695,7 +2282,6 @@ $("res").onclick = e => {
     return { done, need, have: done ? need : Math.min(seen.length, need) };
   }
 
-  // What a task's button does, worked out from what the task asks for
   function runTaskAction(task){
     const r = task.row;
     const scope = String(r.SCOPE || "").trim().toLowerCase();
@@ -2734,16 +2320,9 @@ $("res").onclick = e => {
   function taskMatches(task, type, context){
     const scope  = String(task.SCOPE||"").trim().toLowerCase();
     const target = String(task.TARGET||"").trim().toLowerCase();
-    if (scope === "behavior"){
-      const t = target.replace(/s$/, "");
-      return t === type;
-    }
-    if (scope === "item"){
-      return !!context.id && target === String(context.id).trim().toLowerCase();
-    }
-    if (scope === "category"){
-      return !!context.category && target === String(context.category).trim().toLowerCase();
-    }
+    if (scope === "behavior"){ const t = target.replace(/s$/, ""); return t === type; }
+    if (scope === "item"){ return !!context.id && target === String(context.id).trim().toLowerCase(); }
+    if (scope === "category"){ return !!context.category && target === String(context.category).trim().toLowerCase(); }
     return false;
   }
 
@@ -2760,10 +2339,7 @@ $("res").onclick = e => {
     history.replaceState(null, "", location.pathname + (rest ? "?" + rest : ""));
   }
 
-  window.__lastStars = (() => {
-    try { return JSON.parse(localStorage.getItem(LAST_STARS_KEY)) || {}; }
-    catch { return {}; }
-  })();
+  window.__lastStars = (() => { try { return JSON.parse(localStorage.getItem(LAST_STARS_KEY)) || {}; } catch { return {}; } })();
 
   document.head.insertAdjacentHTML("beforeend", `<style>
 #passportBtn{position:relative}
@@ -2935,19 +2511,13 @@ $("res").onclick = e => {
   function enqueueRewards(jobs){
     if (!jobs.length) return;
     queue.push(...jobs);
-    // Keep the whole pending queue in celebration order, not just this event.
     queue.sort((a, b) => rewardPriority(a) - rewardPriority(b));
     pump();
   }
 
-  function celebrateStamp(stamp, stars, replay, kind){
-    enqueueRewards([{ stamp, stars, replay, kind: kind || "star" }]);
-  }
-
   function allRanksComplete(){
     const active = STAMPS.filter(stampActive);
-    return active.length > 0 &&
-      active.every(stamp => starsFor(stamp.row, countFor(stamp)) >= 3);
+    return active.length > 0 && active.every(stamp => starsFor(stamp.row, countFor(stamp)) >= 3);
   }
 
   function pump(){
@@ -2966,7 +2536,6 @@ $("res").onclick = e => {
     const isStar = kind === "star";
     const isGrand = kind === "grand";
     const taskLabel = job.taskLabel || "";
-
     slam.classList.toggle("plain", !isStar && !isGrand);
 
     if (isGrand) {
@@ -2990,8 +2559,6 @@ $("res").onclick = e => {
     slam.classList.add("on");
     if (isStar || isGrand) slam.classList.add("hit");
     slam.focus();
-
-    // Confetti is reserved for a newly earned third star or the final passport reward.
     if ((isGrand || (isStar && done)) && !REDUCED) {
       stopConfetti = confetti(slam.querySelector("canvas"));
     }
@@ -2999,29 +2566,16 @@ $("res").onclick = e => {
     autoTimer = setTimeout(() => dismiss(replay), duration);
   }
 
-
-function dismiss(replay){
-  if (!slam.classList.contains("on")) return;
-
-  clearTimeout(autoTimer);
-
-  if (stopConfetti) {
-    stopConfetti();
-    stopConfetti = null;
+  function dismiss(replay){
+    if (!slam.classList.contains("on")) return;
+    clearTimeout(autoTimer);
+    if (stopConfetti) { stopConfetti(); stopConfetti = null; }
+    slam.classList.remove("on", "hit", "plain");
+    if (replay !== true) $("passportBtn").classList.add("nudge");
+    renderStampCards();
+    showing = false;
+    pump();
   }
-
-  slam.classList.remove("on", "hit", "plain");
-
-  if (replay !== true) {
-    $("passportBtn").classList.add("nudge");
-  }
-
-  renderStampCards();
-
-  // Allow the next queued stamp, star, or rank reward to display.
-  showing = false;
-  pump();
-}
 
   slam.addEventListener("click", () => dismiss());
   document.addEventListener("keydown", e => {
@@ -3033,16 +2587,14 @@ function dismiss(replay){
   window.renderStampCards = function(){
     const box = document.getElementById("pStamps");
     if (!box) return;
-
     if (!STAMPS.length && !TASKS.length){
       box.innerHTML = `<h3 class="p-h">Ranks and tasks</h3><p style="color:#9aa3ad;font-size:13px;margin:0">Loading…</p>`;
       return;
     }
-
     const active = STAMPS.filter(stampActive);
     const inActive = new Set();
     active.forEach(s => s.tasks.forEach(id => inActive.add(key(id))));
-    const loose = TASKS.filter(t => !inActive.has(key(t.row.TASK_ID)));   // tasks that do not count toward a rank
+    const loose = TASKS.filter(t => !inActive.has(key(t.row.TASK_ID)));
 
     let html = "";
     if (active.length){
@@ -3090,11 +2642,9 @@ function dismiss(replay){
         <h4 class="p-tasks-h">Tasks: ${esc(fr.TITLE||"")}</h4>
         ${featTasks.map(taskRowHTML).join("") || `<p class="p-none">No tasks set up for this rank yet.</p>`}`;
     }
-
     if (loose.length){
       html += `<h4 class="p-tasks-h">${active.length ? "More to do" : "Tasks"}</h4>` + loose.map(taskRowHTML).join("");
     }
-
     box.innerHTML = html;
 
     box.querySelectorAll(".p-featured[data-id], .p-tile[data-id]").forEach(el => {
@@ -3115,7 +2665,6 @@ function dismiss(replay){
     $("passportDrawer").classList.add("open");
   };
 
-  // One-time location check: lights every passport place within reach. Nothing is stored or sent.
   $("checkinBtn").onclick = () => {
     const out = $("checkinMsg");
     if (!navigator.geolocation) { out.textContent = "Location isn't available on this device."; return; }
@@ -3135,17 +2684,13 @@ function dismiss(replay){
     { enableHighAccuracy: true, timeout: 10000 });
   };
 
-  // A site visit and a task are separate things: visiting lights a stamp (see unlockStamp);
-  // this only completes TASKS. Stars come only from tasks that belong to an active rank track.
   window.passportEvent = (type, context = {}) => {
     if (SITE.passport === false || !TASKS.length) return;
-
     const wasAllRanksComplete = allRanksComplete();
     const progress = loadProgress();
     progress._done = progress._done || {};
     progress._seen = progress._seen || {};
     const hit = [];
-
     for (const t of TASKS){
       const id = String(t.row.TASK_ID).trim();
       if (progress._done[id]) continue;
@@ -3165,28 +2710,18 @@ function dismiss(replay){
 
     const jobs = [];
     window.__lastStars = window.__lastStars || {};
-
     for (const t of hit){
-      const owners = STAMPS.filter(s =>
-        stampActive(s) && s.tasks.some(x => key(x) === key(t.row.TASK_ID))
-      );
+      const owners = STAMPS.filter(s => stampActive(s) && s.tasks.some(x => key(x) === key(t.row.TASK_ID)));
       const label = t.row.LABEL || "Task complete!";
-
       if (!owners.length){
-        jobs.push({
-          stamp: { row: { TITLE: "", VEHICLE: "generic" } },
-          stars: 0, replay: false, kind: "plain", taskLabel: label
-        });
+        jobs.push({ stamp: { row: { TITLE: "", VEHICLE: "generic" } }, stars: 0, replay: false, kind: "plain", taskLabel: label });
         continue;
       }
-
       for (const stamp of owners){
         const sid = String(stamp.row.STAMP_ID).trim();
         const stars = starsFor(stamp.row, countFor(stamp));
         const prev = Number(window.__lastStars[sid] || 0);
-
         if (stars > prev){
-          // Only queue one star upgrade at the point the category advances.
           jobs.push({ stamp, stars, replay: false, kind: "star" });
           window.__lastStars[sid] = stars;
         } else {
@@ -3194,33 +2729,22 @@ function dismiss(replay){
         }
       }
     }
-
-    try {
-      localStorage.setItem(LAST_STARS_KEY, JSON.stringify(window.__lastStars));
-    } catch {}
-
-    // The overall finale is eligible only on the transition into full completion.
+    try { localStorage.setItem(LAST_STARS_KEY, JSON.stringify(window.__lastStars)); } catch {}
     if (!wasAllRanksComplete && allRanksComplete()){
-      jobs.push({
-        stamp: { row: { TITLE: "MASTER HISTORIAN", VEHICLE: "train", GRAND_RANK: "" } },
-        stars: 3, replay: false, kind: "grand"
-      });
+      jobs.push({ stamp: { row: { TITLE: "MASTER HISTORIAN", VEHICLE: "train", GRAND_RANK: "" } }, stars: 3, replay: false, kind: "grand" });
     }
-
     enqueueRewards(jobs);
     renderStampCards();
   };
+
   function nudgeWhenReady(){
     if (document.getElementById("welcomeOverlay")) { setTimeout(nudgeWhenReady, 2000); return; }
     if (!localStorage.getItem(STAMP_KEY)) $("passportBtn").classList.add("nudge");
   }
   setTimeout(nudgeWhenReady, 8000);
-
 })();
 
-/* ============================================================
-   SITE QR LINKS  (?site=CV-005 opens that place and lights its stamp)
-   ============================================================ */
+/* SITE QR LINKS */
 (function () {
   const sid = new URLSearchParams(location.search).get("site");
   if (!sid) return;
@@ -3234,16 +2758,9 @@ function dismiss(replay){
   }, 250);
 })();
 
-/* ============================================================
-   CLOSE PASSPORT DRAWER
-   ============================================================ */
-$("closePassport").onclick = () => {
-  $("passportDrawer").classList.remove("open");
-};
+$("closePassport").onclick = () => { $("passportDrawer").classList.remove("open"); };
 
-/* ============================================================
-   AERIAL VIEW: USGS imagery everywhere, with Indiana's own (sharper) imagery on top when zoomed in
-   ============================================================ */
+/* AERIAL VIEW */
 const AERIAL = {
   usgs: {
     tiles: ["https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}"],
@@ -3256,12 +2773,12 @@ const AERIAL = {
     attribution: "Imagery: Indiana Geographic Information Office (IGIO)"
   }
 };
-const inIndiana = c => c.lng > -88.1 && c.lng < -84.78 && c.lat > 37.77 && c.lat < 41.77;   // rough box; the layer is only added for Indiana maps
+const inIndiana = c => c.lng > -88.1 && c.lng < -84.78 && c.lat > 37.77 && c.lat < 41.77;
 function setAerial(on){
   try {
     if (on && !map.getSource("usgs-tiles")) {
       const order = map.getStyle().layers.map(l => l.id);
-      const beforeId = order[order.indexOf("osm") + 1];   // just above the street map, below boundary lines and old-map overlays
+      const beforeId = order[order.indexOf("osm") + 1];
       map.addSource("usgs-tiles", { type: "raster", tiles: AERIAL.usgs.tiles, tileSize: 256, maxzoom: AERIAL.usgs.maxzoom, attribution: AERIAL.usgs.attribution });
       map.addLayer({ id: "aerial-usgs", type: "raster", source: "usgs-tiles" }, beforeId);
       if (inIndiana(map.getCenter())) {
@@ -3277,9 +2794,7 @@ function setAerial(on){
 }
 $("aerialBtn").onclick = () => setAerial($("aerialBtn").getAttribute("aria-pressed") !== "true");
 
-/* ============================================================
-   EVENT / FOCUS PANEL (text comes from site.csv)
-   ============================================================ */
+/* EVENT / FOCUS PANEL */
 const evStatus = ev => (window.EventSchedule && ev.schedule) ? EventSchedule.status(ev.schedule) : null;
 function renderEventSwitcher(){
   const box = $("ev-switch");
@@ -3345,9 +2860,12 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeEventPa
 
 /* ============================================================
    POST-LOAD ENHANCEMENTS
-   Chunks 1 (mobile half-sheet), 2 (a11y), 3 (wipe),
-   4 (category chips), 5 (deep-linking & share),
-   6 (offline cache), 7 (prize progress)
+   - Mobile half-sheet panel
+   - Category filter chips
+   - Then-and-now wipe (real hard split)
+   - Deep-linking & share
+   - Offline cache
+   - Prize progress (uses prizes.csv)
    ============================================================ */
 (function(){
 
@@ -3363,111 +2881,92 @@ function toast(msg, ms){
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.classList.remove("show"), ms || 2200);
 }
+window.toast = toast;
 
-/* ============================================================
-   CHUNK 2 — ACCESSIBILITY (leaders decorative, list semantics)
-   ============================================================ */
-{
-  const svg = $id("leaders");
-  if (svg) svg.setAttribute("aria-hidden", "true");
-}
-
-/* ============================================================
+/* ------------------------------------------------------------
    CHUNK 1 — HALF-SHEET PANEL (mobile drag)
-   ============================================================ */
+   ------------------------------------------------------------ */
 {
   const panel = $id("panel");
-  if (!panel) return;
+  if (panel) {
+    const grab = document.createElement("div");
+    grab.className = "grab";
+    grab.setAttribute("aria-hidden", "true");
+    panel.prepend(grab);
+    panel.classList.add("grabber");
 
-  // Grab bar
-  const grab = document.createElement("div");
-  grab.className = "grab";
-  grab.setAttribute("aria-hidden", "true");
-  panel.prepend(grab);
-  panel.classList.add("grabber");
+    let dragStartY = 0, dragStartT = 0, dragging = false, panelHeight = 0;
 
-  let dragStartY = 0, dragStartT = 0, currentT = 0, dragging = false;
-  let panelHeight = 0;
-
-  function snapClass(){
-    if (!isPhone()) return;
-    panel.classList.remove("snap-half","snap-full","snap-closed");
-    panel.style.transform = "";
-  }
-
-  function setSnap(which){
-    if (!isPhone()) return;
-    panel.classList.remove("snap-half","snap-full","snap-closed");
-    panel.classList.add("snap-" + which);
-    // Offset the map so the selected pin stays visible above the panel
-    if (which === "half" && window.__sel) {
-      window.map && window.map.easeTo({
-        center: window.__sel.ll,
-        padding: { bottom: Math.round(window.innerHeight * 0.42) },
-        duration: reduceMotion ? 0 : 300
-      });
-    }
-  }
-
-  // Initial state on open
-  const origOpen = panel.classList.add.bind(panel.classList);
-  // Hook into select() by observing panel visibility
-  const mo = new MutationObserver(() => {
-    if (panel.hidden) return;
-    if (isPhone()){
-      panel.classList.remove("snap-full","snap-closed");
-      panel.classList.add("snap-half");
-    } else {
+    function snapClass(){
+      if (!isPhone()) return;
       panel.classList.remove("snap-half","snap-full","snap-closed");
       panel.style.transform = "";
     }
-  });
-  mo.observe(panel, { attributes:true, attributeFilter:["hidden"] });
+    function setSnap(which){
+      if (!isPhone()) return;
+      panel.classList.remove("snap-half","snap-full","snap-closed");
+      panel.classList.add("snap-" + which);
+      if (which === "half" && window.__sel) {
+        window.map && window.map.easeTo({
+          center: window.__sel.ll,
+          padding: { bottom: Math.round(window.innerHeight * 0.42) },
+          duration: reduceMotion ? 0 : 300
+        });
+      }
+    }
 
-  // Drag handler
-  function pointerDown(e){
-    if (!isPhone()) return;
-    dragging = true;
-    dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
-    dragStartT = panel.getBoundingClientRect().top;
-    panelHeight = panel.getBoundingClientRect().height;
-    panel.classList.add("dragging");
-    panel.setPointerCapture && e.pointerId != null && panel.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  }
-  function pointerMove(e){
-    if (!dragging) return;
-    const y = e.touches ? e.touches[0].clientY : e.clientY;
-    const dy = y - dragStartY;
-    const newTop = Math.max(0, Math.min(dragStartT + dy, panelHeight - 60));
-    panel.style.transform = "translateY(" + newTop + "px)";
-  }
-  function pointerUp(){
-    if (!dragging) return;
-    dragging = false;
-    panel.classList.remove("dragging");
-    const top = panel.getBoundingClientRect().top;
-    const h = window.innerHeight;
-    const fullThresh = h * 0.35;
-    const closeThresh = h * 0.85;
-    if (top < fullThresh) setSnap("full");
-    else if (top > closeThresh) setSnap("closed");
-    else setSnap("half");
-  }
+    new MutationObserver(() => {
+      if (panel.hidden) return;
+      if (isPhone()){
+        panel.classList.remove("snap-full","snap-closed");
+        panel.classList.add("snap-half");
+      } else {
+        panel.classList.remove("snap-half","snap-full","snap-closed");
+        panel.style.transform = "";
+      }
+    }).observe(panel, { attributes:true, attributeFilter:["hidden"] });
 
-  grab.addEventListener("pointerdown", pointerDown);
-  panel.addEventListener("pointerdown", e => {
-    if (e.target === grab || e.target.classList.contains("grab")) pointerDown(e);
-  });
-  window.addEventListener("pointermove", pointerMove, { passive:false });
-  window.addEventListener("pointerup", pointerUp);
-  window.addEventListener("pointercancel", pointerUp);
-  window.addEventListener("resize", snapClass);
+    function pointerDown(e){
+      if (!isPhone()) return;
+      dragging = true;
+      dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
+      dragStartT = panel.getBoundingClientRect().top;
+      panelHeight = panel.getBoundingClientRect().height;
+      panel.classList.add("dragging");
+      e.preventDefault();
+    }
+    function pointerMove(e){
+      if (!dragging) return;
+      const y = e.touches ? e.touches[0].clientY : e.clientY;
+      const dy = y - dragStartY;
+      const newTop = Math.max(0, Math.min(dragStartT + dy, panelHeight - 60));
+      panel.style.transform = "translateY(" + newTop + "px)";
+    }
+    function pointerUp(){
+      if (!dragging) return;
+      dragging = false;
+      panel.classList.remove("dragging");
+      const top = panel.getBoundingClientRect().top;
+      const h = window.innerHeight;
+      if (top < h * 0.35) setSnap("full");
+      else if (top > h * 0.85) setSnap("closed");
+      else setSnap("half");
+    }
+
+    grab.addEventListener("pointerdown", pointerDown);
+    panel.addEventListener("pointerdown", e => {
+      if (e.target === grab || e.target.classList.contains("grab")) pointerDown(e);
+    });
+    window.addEventListener("pointermove", pointerMove, { passive:false });
+    window.addEventListener("pointerup", pointerUp);
+    window.addEventListener("pointercancel", pointerUp);
+    window.addEventListener("resize", snapClass);
+  }
 }
 
-/* ============================================================
+/* ------------------------------------------------------------
    CHUNK 4 — CATEGORY FILTER CHIPS
-   ============================================================ */
+   ------------------------------------------------------------ */
 const HIDDEN_CATS_KEY = "connersville_hidden_cats" + (window.KEY_SUFFIX || "");
 let hiddenCats = new Set();
 try { hiddenCats = new Set(JSON.parse(localStorage.getItem(HIDDEN_CATS_KEY)) || []); } catch {}
@@ -3483,7 +2982,6 @@ function buildChips(){
   if (!wrap || !ul) return;
   if (!window.SITE || !SITE.catNames || !Object.keys(SITE.catNames).length) return;
 
-  // Count places per category
   const counts = {};
   (window.places || []).concat(window.kids || []).forEach(p => {
     const c = String((p.d && p.d.CATEGORY) || "").trim().toUpperCase();
@@ -3522,30 +3020,15 @@ function buildChips(){
     }
   };
 }
+window.__buildChips = buildChips;
+setTimeout(buildChips, 3000);
 
-// Hook into update() to respect hiddenCats — patch after the map loads
-setTimeout(() => {
-  if (typeof window.update === "function" && !window.__updatePatched){
-    window.__updatePatched = true;
-    const origUpdate = window.update;
-    window.update = function(){
-      origUpdate.apply(this, arguments);
-      if (!hiddenCats.size) return;
-      (window.places || []).concat(window.kids || []).forEach(p => {
-        const c = String((p.d && p.d.CATEGORY) || "").trim().toUpperCase();
-        if (hiddenCats.has(c) && p.el) p.el.style.display = "none";
-      });
-    };
-  }
-  buildChips();
-}, 3000);
-
-/* ============================================================
+/* ------------------------------------------------------------
    CHUNK 3 — THEN-AND-NOW WIPE (real hard split)
    The overlay image is drawn into its own <img> over the map,
-   clipped by the wipe handle. MapLibre never touches it, so
-   dragging is smooth and the split is exact.
-   ============================================================ */
+   clipped by the wipe handle. MapLibre's overlay layers are set
+   to 0 opacity so they don't double up.
+   ------------------------------------------------------------ */
 (function(){
   let wipeEl = null, overlayImg = null, stageEl = null;
   let dragging = false;
@@ -3557,7 +3040,7 @@ setTimeout(() => {
     const stage = document.createElement("div");
     stage.id = "wipeStage";
     stage.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:3";
-    stage.innerHTML = `<img id="wipeImg" alt="" style="position:absolute;transform-origin:0 0;will-change:clip-path;image-rendering:auto">`;
+    stage.innerHTML = `<img id="wipeImg" alt="" style="position:absolute;transform-origin:0 0;will-change:clip-path;display:none">`;
     document.body.appendChild(stage);
     overlayImg = stage.querySelector("#wipeImg");
     return stage;
@@ -3574,7 +3057,7 @@ setTimeout(() => {
   }
 
   function placeOverlay(){
-    if (!overlayImg || overlayImg.hidden) return;
+    if (!overlayImg || overlayImg.style.display === "none") return;
     const ovs = (window.SITE && SITE.overlays) || [];
     const ov = ovs[currentOverlayIdx];
     if (!ov || !window.map) return;
@@ -3582,7 +3065,6 @@ setTimeout(() => {
     const map = window.map;
     const canvas = map.getCanvas();
     const rect = canvas.getBoundingClientRect();
-
     const c = ov.coords;
     const p1 = map.project([c[0][0], c[0][1]]);
     const p2 = map.project([c[1][0], c[1][1]]);
@@ -3614,24 +3096,30 @@ setTimeout(() => {
     if (!window.map) { w.hidden = true; stage.style.display = "none"; return; }
 
     const ovs = (window.SITE && SITE.overlays) || [];
-    const ov = $("ov");
-    const ovw = $("ovw");
-    if (!ov || !ovw || ovw.hidden || !ovs.length) {
+    const ov = $id("ov");
+    const ovw = $id("ovw");
+    if (!ov || !ovw || ovw.hidden || !ovs.length){
       w.hidden = true; stage.style.display = "none"; return;
     }
 
     const active = +ov.value > 0;
-    if (!active) { w.hidden = true; stage.style.display = "none"; return; }
+    if (!active){
+      w.hidden = true; stage.style.display = "none";
+      return;
+    }
 
     w.hidden = false;
     stage.style.display = "";
 
-    const ovsSel = $("ovs");
+    const ovsSel = $id("ovs");
     const idx = ovsSel ? +ovsSel.value : 0;
-    if (idx !== currentOverlayIdx) {
+    if (idx !== currentOverlayIdx){
       currentOverlayIdx = idx;
       const o = ovs[idx];
-      if (o && o.url) overlayImg.src = window.assetUrl ? assetUrl(o.url) : o.url;
+      if (o && o.url){
+        overlayImg.src = window.assetUrl ? assetUrl(o.url) : o.url;
+        overlayImg.style.display = "";
+      }
     }
 
     try { ovs.forEach((_, n) => map.setPaintProperty("ov" + n, "raster-opacity", 0)); } catch(e){}
@@ -3639,15 +3127,24 @@ setTimeout(() => {
     placeOverlay();
     updateHandle();
   }
+  window.__updateWipe = updateWipe;
 
   function moveSplit(clientX){
     splitX = Math.max(0.02, Math.min(0.98, clientX / window.innerWidth));
     placeOverlay();
     updateHandle();
   }
-
-  function onDown(e){ dragging = true; e.preventDefault(); e.stopPropagation(); moveSplit(e.touches ? e.touches[0].clientX : e.clientX); }
-  function onMove(e){ if (!dragging) return; e.preventDefault(); moveSplit(e.touches ? e.touches[0].clientX : e.clientX); }
+  function onDown(e){
+    dragging = true;
+    e.preventDefault();
+    e.stopPropagation();
+    moveSplit(e.touches ? e.touches[0].clientX : e.clientX);
+  }
+  function onMove(e){
+    if (!dragging) return;
+    e.preventDefault();
+    moveSplit(e.touches ? e.touches[0].clientX : e.clientX);
+  }
   function onUp(){ dragging = false; }
 
   let attempts = 0;
@@ -3671,15 +3168,15 @@ setTimeout(() => {
     window.map.on("zoom", placeOverlay);
     window.map.on("resize", () => { placeOverlay(); updateHandle(); });
 
-    const ov = $("ov");
+    const ov = $id("ov");
     if (ov) ov.addEventListener("input", () => setTimeout(updateWipe, 30));
-    const ovsSel = $("ovs");
+    const ovsSel = $id("ovs");
     if (ovsSel) ovsSel.addEventListener("change", () => { currentOverlayIdx = -1; updateWipe(); });
 
-    if (!sessionStorage.getItem("wipeHintShown")) {
+    if (!sessionStorage.getItem("wipeHintShown")){
       sessionStorage.setItem("wipeHintShown", "1");
       setTimeout(() => {
-        if (!w.hidden) {
+        if (!w.hidden){
           const hint = document.createElement("div");
           hint.id = "wipeHint";
           hint.textContent = "Drag the handle to compare old and new";
@@ -3688,47 +3185,32 @@ setTimeout(() => {
         }
       }, 1200);
     }
-
     updateWipe();
   }, 250);
-
-  if (window.map) {
-    window.map.on("rotate", () => {
-      if (wipeEl && !wipeEl.hidden && !wipeEl._rotateWarned) {
-        wipeEl._rotateWarned = true;
-        toast("Reset the compass to use the wipe — it only works north-up.");
-      }
-    });
-  }
 })();
 
-/* ============================================================
+/* ------------------------------------------------------------
    CHUNK 5 — DEEP-LINKING & SHARE
-   ============================================================ */
+   ------------------------------------------------------------ */
 (function(){
   const qs = () => new URLSearchParams(location.search);
 
-  // On load: apply ?year= and ?cat=
   try {
     const q = qs();
     const y = q.get("year");
     const yr = $id("yr");
-    if (y && yr){
-      yr.value = y;
-      yr.dispatchEvent(new Event("input"));
-    }
+    if (y && yr){ yr.value = y; yr.dispatchEvent(new Event("input")); }
+
     const cat = q.get("cat");
     if (cat){
       const on = new Set(cat.split(",").map(s => s.trim().toUpperCase()));
       if (on.size && window.SITE && SITE.catNames){
-        Object.keys(SITE.catNames).forEach(code => {
-          if (!on.has(code)) hiddenCats.add(code);
-        });
+        Object.keys(SITE.catNames).forEach(code => { if (!on.has(code)) hiddenCats.add(code); });
         try { localStorage.setItem(HIDDEN_CATS_KEY, JSON.stringify([...hiddenCats])); } catch {}
         setTimeout(buildChips, 500);
       }
     }
-    // ?place= opens any place (not just major ones)
+
     const place = q.get("place");
     if (place && !q.get("site")){
       let tries = 0;
@@ -3742,10 +3224,9 @@ setTimeout(() => {
     }
   } catch(e){}
 
-  // Share button: add to the panel whenever a place is opened
   const panel = $id("panel");
   if (panel){
-    const mo = new MutationObserver(() => {
+    new MutationObserver(() => {
       if (panel.hidden) return;
       if (panel.querySelector(".share-btn")) return;
       const btn = document.createElement("button");
@@ -3757,30 +3238,21 @@ setTimeout(() => {
         if (!id) return;
         const url = location.origin + location.pathname + "?place=" + encodeURIComponent(id);
         try {
-          if (navigator.share){
-            await navigator.share({ title: "Connersville history", url });
-          } else {
-            await navigator.clipboard.writeText(url);
-            toast("Link copied");
-          }
-        } catch(e){
-          // Fallback: show a prompt with the URL
-          prompt("Copy this link:", url);
-        }
+          if (navigator.share) await navigator.share({ title: "Connersville history", url });
+          else { await navigator.clipboard.writeText(url); toast("Link copied"); }
+        } catch(e){ prompt("Copy this link:", url); }
       };
       const kids = panel.querySelector("h3");
       if (kids) panel.insertBefore(btn, kids);
       else panel.appendChild(btn);
-    });
-    mo.observe(panel, { childList:true, subtree:true });
+    }).observe(panel, { childList:true, subtree:true });
   }
 
-  // Update URL as user interacts
   const origSelect = window.select;
   if (typeof origSelect === "function" && !window.__selectPatched){
     window.__selectPatched = true;
     window.select = function(it){
-      window.__sel = it;                 // needed by chunk 1
+      window.__sel = it;
       origSelect.apply(this, arguments);
       if (!it) return;
       try {
@@ -3793,20 +3265,15 @@ setTimeout(() => {
   }
 })();
 
-/* ============================================================
-   CHUNK 6 — OFFLINE CACHE (service worker registration + download)
-   ============================================================ */
+/* ------------------------------------------------------------
+   CHUNK 6 — OFFLINE CACHE
+   ------------------------------------------------------------ */
 (function(){
   if (!("serviceWorker" in navigator)) return;
-
-  // Register
   navigator.serviceWorker.register("sw.js").then(reg => {
     console.info("Offline worker registered", reg.scope);
-  }).catch(err => {
-    console.warn("Service worker registration failed", err);
-  });
+  }).catch(err => { console.warn("Service worker registration failed", err); });
 
-  // Add the "Save for offline" button to the passport drawer
   const body = document.querySelector(".passport-body");
   if (!body) return;
   const btn = document.createElement("button");
@@ -3822,21 +3289,17 @@ setTimeout(() => {
     }
     btn.disabled = true;
     btn.textContent = "Saving… 0%";
-
-    // Ask the SW to cache everything in the current event
     const files = [
       location.pathname,
       "site.csv", "locations.csv", "childmarkers.csv",
       "categories.csv", "shapes.csv", "photos.csv",
-      "stamps.csv", "tasks.csv", "overlays.json",
+      "stamps.csv", "tasks.csv", "prizes.csv", "overlays.json",
       "spots.csv", "tours.csv", "tourstops.csv",
       "events/index.json",
       window.EVENT_DIR ? window.EVENT_DIR + "event.json" : null
     ].filter(Boolean);
-
     navigator.serviceWorker.controller.postMessage({
-      type: "PRECACHE",
-      files,
+      type: "PRECACHE", files,
       bounds: window.SITE && SITE.maxBounds,
       zoom: 15
     });
@@ -3849,10 +3312,151 @@ setTimeout(() => {
   };
 })();
 
+/* ------------------------------------------------------------
+   CHUNK 7 — PRIZES (reads prizes.csv, respects PRIZES in site.csv)
+   A prize is earned when the visitor reaches the required star in
+   every listed stamp. REQUIREMENTS is "STAMP_ID:stars" joined by |
+   where stars is "any" | 1 | 2 | 3.
+   ------------------------------------------------------------ */
+(function(){
+  if (!window.SITE) return;
+
+  const PRIZES_READY = (async () => {
+    await (window.SETTINGS_READY || Promise.resolve());
+    if (SITE.prizes === false) return [];
+    try {
+      const r = await dataFetch("prizes.csv", { cache:"no-store" });
+      if (!r.ok) return [];
+      const txt = await r.text();
+      if (!txt.trim()) return [];
+      return Papa.parse(txt, { header:true, skipEmptyLines:"greedy" }).data
+        .filter(r => String(r.PRIZE_ID || "").trim())
+        .map(r => ({
+          id: String(r.PRIZE_ID).trim(),
+          label: String(r.LABEL || r.PRIZE_ID).trim(),
+          reward: String(r.REWARD || "").trim(),
+          code: String(r.CODE || "").trim(),
+          order: parseInt(r.ORDER, 10) || 9999,
+          reqs: parseRequirements(r.REQUIREMENTS)
+        }))
+        .sort((a, b) => a.order - b.order);
+    } catch (e) { return []; }
+  })();
+
+  function parseRequirements(s){
+    return String(s || "").split("|").map(x => x.trim()).filter(Boolean).map(x => {
+      const parts = x.split(":");
+      const stamp = String(parts[0] || "").trim();
+      let stars = String(parts[1] || "any").trim().toLowerCase();
+      if (stars === "") stars = "any";
+      if (stars !== "any" && !["1","2","3"].includes(stars)) stars = "any";
+      return { stamp, stars };
+    }).filter(r => r.stamp);
+  }
+
+  function starsInStamp(stampId){
+    try {
+      const list = window.__stampsData || [];
+      const stamp = list.find(s => String(s.row.STAMP_ID).trim().toLowerCase() === stampId.toLowerCase());
+      if (!stamp) return 0;
+      const KEY = "connersville_stamps_v2" + (window.KEY_SUFFIX || "");
+      const progress = JSON.parse(localStorage.getItem(KEY)) || {};
+      const done = progress._done || {};
+      const bucket = progress[String(stamp.row.STAMP_ID).trim()] || {};
+      const count = stamp.tasks.filter(id => done[id] || bucket[id]).length;
+      const t1 = +stamp.row.STAR1 || Infinity;
+      const t2 = +stamp.row.STAR2 || Infinity;
+      const t3 = +stamp.row.STAR3 || Infinity;
+      if (count >= t3) return 3;
+      if (count >= t2) return 2;
+      if (count >= t1) return 1;
+      return 0;
+    } catch (e) { return 0; }
+  }
+
+  function reqMet(req){
+    const have = starsInStamp(req.stamp);
+    if (req.stars === "any") return have >= 1;
+    return have >= (+req.stars || 1);
+  }
+
+  function prizeProgress(prize){
+    const total = prize.reqs.length;
+    const met = prize.reqs.filter(reqMet).length;
+    return { total, met, done: total > 0 && met >= total };
+  }
+
+  function renderPrizes(prizes){
+    const body = document.querySelector(".passport-body");
+    if (!body || !prizes.length) return;
+    let box = document.getElementById("pPrizes");
+    if (!box){
+      box = document.createElement("section");
+      box.id = "pPrizes";
+      const grid = document.getElementById("stampGrid");
+      if (grid) grid.parentNode.insertBefore(box, grid);
+      else body.appendChild(box);
+    }
+    box.innerHTML = `<h3 class="p-h">Prizes</h3>` + prizes.map(p => {
+      const { total, met, done } = prizeProgress(p);
+      const pct = total ? Math.round(met / total * 100) : 0;
+      return `<div class="p-prize ${done ? "done" : ""}" data-prize="${esc(p.id)}">
+        <h4>${esc(p.label)}</h4>
+        <div class="bar"><i style="width:${pct}%"></i></div>
+        <div class="meta">${done ? "🎉 " + esc(p.reward || "You did it!") : met + " of " + total + " — " + esc(p.reward || "keep going!")}</div>
+        ${done ? `<button type="button" class="p-claim" data-claim="${esc(p.id)}">Show this to claim</button>` : ""}
+      </div>`;
+    }).join("");
+
+    box.querySelectorAll(".p-claim").forEach(btn => {
+      btn.onclick = () => {
+        const p = prizes.find(x => x.id === btn.dataset.claim);
+        if (p) showClaimSlip(p);
+      };
+    });
+  }
+
+  function showClaimSlip(prize){
+    let slip = document.getElementById("claimSlip");
+    if (!slip){
+      slip = document.createElement("div");
+      slip.id = "claimSlip";
+      slip.innerHTML = `<div class="slip">
+        <button class="x" type="button" aria-label="Close">&times;</button>
+        <h2 id="slipTitle"></h2>
+        <p id="slipReward"></p>
+        <div id="slipCode" hidden><span>Claim code</span><b id="slipCodeVal"></b></div>
+        <p class="small">Show this screen to the vendor.</p>
+      </div>`;
+      document.body.appendChild(slip);
+      slip.querySelector(".x").onclick = () => slip.classList.remove("on");
+      slip.addEventListener("click", e => { if (e.target === slip) slip.classList.remove("on"); });
+      document.addEventListener("keydown", e => { if (e.key === "Escape") slip.classList.remove("on"); });
+    }
+    slip.querySelector("#slipTitle").textContent = prize.label;
+    slip.querySelector("#slipReward").textContent = prize.reward || "You've earned this prize!";
+    const cbox = slip.querySelector("#slipCode");
+    if (prize.code){ slip.querySelector("#slipCodeVal").textContent = prize.code; cbox.hidden = false; }
+    else cbox.hidden = true;
+    slip.classList.add("on");
+  }
+
+  PRIZES_READY.then(prizes => {
+    if (!prizes.length) return;
+    window.__prizes = prizes;
+    renderPrizes(prizes);
+
+    const drawer = document.getElementById("passportDrawer");
+    if (drawer){
+      new MutationObserver(() => {
+        if (drawer.classList.contains("open")) renderPrizes(prizes);
+      }).observe(drawer, { attributes: true, attributeFilter: ["class"] });
+    }
+  });
+})();
 
 })();
-  
+
 </script>
-  <div id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
