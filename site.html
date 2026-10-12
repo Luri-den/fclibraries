@@ -349,39 +349,31 @@ $('fSite').addEventListener('change', async e => {
   status('Loaded ' + f.name + '. Edit, then Download updated site.csv.');
   e.target.value = '';
 });
-// when designing an event, start from that event's own site.csv instead of waiting for a file
-if (window.Workspace && Workspace.slug) {
-  const go = () => fetch('site.csv', { cache: 'no-store' }).then(r => r.ok ? r.text() : null).then(t => {
-    if (t) { lastText = t; startFrom(t); status("Loaded this event's own site.csv. Edit, then Download updated site.csv."); }
-  }).catch(() => {});
-  const wait = n => (typeof mapLoaded !== 'undefined' && mapLoaded) || n > 40 ? go() : setTimeout(() => wait(n + 1), 250);
-  wait(0);
-}
-$('startBtn').onclick = () => {
-  if (S && !confirm('Discard what is on screen and start from the built-in defaults?')) return;
-  lastText = null; startFrom(null);
-  status('Started from the Connersville defaults.');
-};
-$('reloadBtn').onclick = () => {
-  if (!confirm('Throw away your edits and reload?')) return;
-  startFrom(lastText);
-  status('Reloaded.');
-};
 
-$('fLocs').addEventListener('change', async e => {
-  const f = e.target.files[0];
-  if (!f) return;
-  const rows = Papa.parse(await f.text(), { header: true, skipEmptyLines: 'greedy' }).data;
-  const feats = rows
-    .map(r => [parseFloat(r.LONG), parseFloat(r.LAT)])
-    .filter(c => c.every(v => !isNaN(v)))
-    .map(c => ({ type: 'Feature', geometry: { type: 'Point', coordinates: c }, properties: {} }));
-  locData = { type: 'FeatureCollection', features: feats };
-  if (mapLoaded) map.getSource('locs').setData(locData);
-  status('Showing ' + feats.length + ' places from ' + f.name + ' as orange dots.');
-  e.target.value = '';
-});
+// Auto-load site.csv on page open:
+//  - while designing an event, Workspace.slug is set and the editors fetch the event's own copy
+//  - otherwise this is the live site: fetch the site.csv that lives next to this page
+(async () => {
+  // wait for the map to finish loading, so startFrom() has somewhere to draw
+  let tries = 0;
+  while (!mapLoaded && tries++ < 40) await new Promise(r => setTimeout(r, 250));
 
+  try {
+    const res = await fetch('site.csv', { cache: 'no-store' });
+    if (res.ok) {
+      const text = await res.text();
+      if (text && text.trim()) {
+        lastText = text;
+        startFrom(text);
+        status((window.Workspace && Workspace.slug ? "Loaded this event's own site.csv." : "Loaded site.csv.") + " Edit, then Download updated site.csv.");
+        return;
+      }
+    }
+  } catch (e) { /* fall through */ }
+
+  // no site.csv on the server yet — leave the panel disabled so the user can use Start from defaults
+  status('No site.csv found next to this page. Click "Start from defaults" to build one, or pick a file.');
+})();
 // ---------- download ----------
 $('dlBtn').onclick = () => {
   if (!S) return;
