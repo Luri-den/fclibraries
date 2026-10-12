@@ -524,11 +524,12 @@ html.settings-loading #tools { visibility: hidden; }
   #bar{flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px 6px}
   .bar-top{order:1;flex:1 1 100%}
   #q{order:2;flex:1 1 0;min-width:0;width:auto}
-  #tools{display:contents}          /* lets its buttons sit in the same row as search */
-  #near,#tour,#eventBtn,#moreBtn{order:3}
-  #res{order:4;flex:1 1 100%}       /* search results still drop down full width */
-  #catChipsWrap{order:5;flex:1 1 100%}
-  #toolsMore{order:6}               /* the opened More panel goes last */
+  #tools{display:contents}
+  #tools > *{order:3}               /* every tools button defaults to the search row */
+  #res{order:4;flex:1 1 100%}
+  #tours,#stories{order:5}          /* the two script-added buttons go on their own row */
+  #catChipsWrap{order:6;flex:1 1 100%}
+  #toolsMore{order:7}               /* opened More panel goes last */
 }
   
 </style>
