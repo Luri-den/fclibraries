@@ -514,14 +514,13 @@ html.settings-loading #tools { visibility: hidden; }
 }
 
 /* ===== Floating search layout (replaces the solid orange top bar) ===== */
-#q{order:2;flex:1 1 0;min-width:0;width:auto;padding:10px 16px;border-radius:999px;background:#fff;color:#000;box-shadow:0 2px 8px rgba(0,0,0,.35);-webkit-appearance:none;appearance:none}
-#passportBtn{order:3;flex:0 0 auto}
+#q{order:2;flex:1 1 0;min-width:0;width:auto;padding:8px 16px;border:2px solid var(--bar,#E47303);border-radius:999px;background:#fff;color:#000;box-shadow:0 2px 8px rgba(0,0,0,.35);-webkit-appearance:none;appearance:none}
+#passportBtn{order:3;flex:0 0 auto;border:2px solid var(--bar,#E47303);padding:4px 12px}
 #res{order:4;flex:1 1 100%;margin:0;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 
 /* category chips: white pills with a colored dot, one sideways-scrolling row */
-#catChipsWrap{order:5;flex:1 1 100%;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;pointer-events:none}
-#catChipsWrap::-webkit-scrollbar{display:none}
-#catChips{list-style:none;margin:0;padding:2px 2px 6px;display:flex;flex-wrap:nowrap;gap:6px;width:max-content}
+#catChipsWrap{order:8;flex:1 1 100%;min-width:0}
+#catChips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
 #catChips li{flex:0 0 auto}
 #catChips button{pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:0;border-radius:999px;background:#fff;color:#222;font:inherit;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.35)}
 #catChips .swatch{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--sw,#E47303);box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px rgba(0,0,0,.25)}
@@ -592,15 +591,15 @@ html.settings-loading #tools { visibility: hidden; }
   </div>
   <input id="q" type="search" placeholder="Search places..." aria-label="Search places">
   <ul id="res" hidden></ul>
-  <div id="catChipsWrap" hidden>
-    <ul id="catChips" aria-label="Filter by category"></ul>
-  </div>
   <div id="tools">
     <button id="near" type="button">Near Me</button>
     <button id="tour" type="button" hidden>Take the Tour</button>
     <button id="eventBtn" type="button" hidden>About</button>
     <button id="moreBtn" type="button" aria-expanded="false" aria-controls="toolsMore" hidden>More &#9662;</button>
     <div id="toolsMore">
+      <div id="catChipsWrap" hidden>
+        <ul id="catChips" aria-label="Filter by category"></ul>
+      </div>
       <button id="aerialBtn" type="button" aria-pressed="false">Aerial</button>
       <label id="yearBox"><span>Year: <b id="yv">All</b></span><span class="strack"><input id="yr" type="range" aria-label="Show sites that existed in this year"><span id="yticks" aria-hidden="true"></span></span></label>
       <label id="ovw" hidden>Old Maps <select id="ovs"></select> <input id="ov" type="range" min="0" max="100" value="0" aria-label="Old map opacity"></label>
@@ -2978,15 +2977,16 @@ function buildChips(){
   });
 
   const codes = Object.keys(SITE.catNames).filter(c => counts[c]);
-  if (!codes.length){ wrap.hidden = true; return; }
+  if (!codes.length){ wrap.hidden = true; if (typeof syncMoreBtn === "function") syncMoreBtn(); return; }
   wrap.hidden = false;
+  if (typeof syncMoreBtn === "function") syncMoreBtn();
 
   ul.innerHTML = codes.map(code => {
     const on = catVisible(code);
     const color = (SITE.colors && SITE.colors[code]) || "#E47303";
     return `<li><button type="button" data-cat="${code}" aria-pressed="${on}">
       <span class="swatch" style="--sw:${color};background:${color}"></span>
-      ${code} <small style="opacity:.7">${counts[code]}</small>
+      ${esc(SITE.catNames[code] || code)}
     </button></li>`;
   }).join("") +
   (hiddenCats.size ? `<li><button type="button" class="reset" id="catReset">Reset</button></li>` : "");
