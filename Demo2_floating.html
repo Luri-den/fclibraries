@@ -513,34 +513,122 @@ html.settings-loading #tools { visibility: hidden; }
   border:0;background:none;cursor:pointer;color:#999;
 }
 
-/* ===== Floating search layout (replaces the solid orange top bar) ===== */
-#q{order:2;flex:1 1 0;min-width:0;width:auto;padding:8px 16px;border:2px solid var(--bar,#E47303);border-radius:999px;background:#fff;color:#000;box-shadow:0 2px 8px rgba(0,0,0,.35);-webkit-appearance:none;appearance:none}
-#passportBtn{order:8;flex:0 0 auto;border:2px solid var(--bar,#E47303);padding:4px 12px}
-#res{order:4;flex:1 1 100%;margin:0;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+/* ===== Floating search layout ===== */
 
-/* category chips: white pills with a colored dot, one sideways-scrolling row */
-#catChipsWrap{order:3;flex:0 1 auto;min-width:0}
-#catChips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+/* --- Row 1: Search · Near Me · About · Aerial · Tours · Stories · Categories · Passport --- */
+
+#q{
+  order:10;
+  flex:1 1 260px;
+  min-width:0;
+  width:auto;
+  padding:8px 16px;
+  border:2px solid var(--bar,#E47303);
+  border-radius:999px;
+  background:#fff;color:#000;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+  -webkit-appearance:none;appearance:none;
+}
+
+#near      { order:20; }
+#eventBtn  { order:21; }
+#aerialBtn { order:22; }
+#tour      { order:23; }
+#tours     { order:24; }
+#stories   { order:25; }
+
+#catChipsWrap{
+  order:30;
+  flex:0 1 auto;
+  min-width:0;
+  max-width:100%;
+}
+#catChips{
+  list-style:none;margin:0;padding:0;
+  display:flex;flex-wrap:nowrap;gap:6px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+#catChips::-webkit-scrollbar{display:none}
 #catChips li{flex:0 0 auto}
-#catChips button{pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:0;border-radius:999px;background:#fff;color:#222;font:inherit;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.35)}
-#catChips .swatch{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--sw,#E47303);box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px rgba(0,0,0,.25)}
+#catChips button{
+  pointer-events:auto;
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 11px;border:0;border-radius:999px;
+  background:#fff;color:#222;font:inherit;font-size:13px;font-weight:600;
+  white-space:nowrap;cursor:pointer;
+  box-shadow:0 1px 4px rgba(0,0,0,.35);
+}
+#catChips .swatch{
+  display:inline-block;width:10px;height:10px;border-radius:50%;
+  background:var(--sw,#E47303);
+  box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px rgba(0,0,0,.25);
+}
 #catChips button[aria-pressed="false"]{opacity:.55}
 #catChips .reset{background:var(--bar,#E47303);color:#fff}
 
-/* tool buttons: floating pills; they follow the chips row */
-#tools{display:contents}
-#tools button{padding:7px 13px;border-radius:999px;font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.35)}
-#tools > *{order:6}
-#toolsMore,#toolsMore > *{order:7}
-#tools label#yearBox,#tools label#ovw{background:var(--bar,#E47303);color:#fff;padding:6px 12px;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.35)}
-@media (max-width:720px){
-  /* the opened "More" panel is a small orange card */
-  #toolsMore{flex:1 1 100%;background:var(--bar,#E47303);padding:10px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.35);box-sizing:border-box}
+#passportBtn{
+  order:40;
+  flex:0 0 auto;
+  border:2px solid var(--bar,#E47303);
+  padding:4px 12px;
+  margin-left:auto;
 }
-@media (min-width:721px){
-  #q{flex:0 1 400px}
-  #res{flex:0 1 400px}
-  #passportBtn{margin-left:auto}
+
+/* search results drop below everything else on row 1 */
+#res{
+  order:45;
+  flex:1 1 100%;
+  margin:0;
+  border-radius:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+
+/* --- Row 2: Year slider · Old Maps --- */
+
+#tools{display:contents}
+
+/* the fold-away "More" button is not needed at desktop; hide it and show its contents inline */
+#moreBtn{display:none!important}
+#toolsMore{display:contents!important}
+
+#yearBox{ order:60; flex:0 0 auto; }
+#ovw    { order:61; flex:0 0 auto; }
+
+#yearBox,#ovw{
+  background:var(--bar,#E47303);
+  color:#fff;
+  padding:6px 12px;
+  border-radius:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.35);
+}
+
+/* generic look for tool buttons */
+#tools button{
+  padding:7px 13px;
+  border-radius:999px;
+  font-weight:600;
+  box-shadow:0 1px 4px rgba(0,0,0,.35);
+}
+
+/* --- Phones: let it wrap more loosely --- */
+@media (max-width:720px){
+  #q{flex:1 1 100%}
+  #passportBtn{margin-left:0}
+  #catChipsWrap{flex:1 1 100%}
+  #catChips{flex-wrap:wrap;overflow-x:visible}
+  #moreBtn{display:inline-block!important}
+  #toolsMore{display:none!important}
+  #tools.open #toolsMore{
+    display:flex!important;
+    flex:1 1 100%;
+    flex-wrap:wrap;
+    background:var(--bar,#E47303);
+    padding:10px;
+    border-radius:16px;
+    box-shadow:0 2px 8px rgba(0,0,0,.35);
+    box-sizing:border-box;
+  }
 }
 
 </style>
