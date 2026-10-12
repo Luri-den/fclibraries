@@ -510,18 +510,15 @@ html.settings-loading #tools { visibility: hidden; }
 (function(){
   let wipeEl = null, overlayImg = null, stageEl = null;
   let dragging = false;
-  let splitX = 0.5;                 // 0 = all modern, 1 = all old
+  let splitX = 0.5;
   let currentOverlayIdx = -1;
 
   function ensureStage(){
     if (stageEl) return stageEl;
     const stage = document.createElement("div");
     stage.id = "wipeStage";
-    // Absolutely-positioned overlay for the old map. Sits above MapLibre's canvas
-    // but below the toolbar, and it's pointer-events:none so map gestures still work
-    // outside the handle.
     stage.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:3";
-    stage.innerHTML = `<img id="wipeImg" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;transform-origin:0 0;will-change:clip-path">`;
+    stage.innerHTML = `<img id="wipeImg" alt="" style="position:absolute;transform-origin:0 0;will-change:clip-path;image-rendering:auto">`;
     document.body.appendChild(stage);
     overlayImg = stage.querySelector("#wipeImg");
     return stage;
@@ -537,11 +534,8 @@ html.settings-loading #tools { visibility: hidden; }
     return wipeEl;
   }
 
-  // Project the image's lat/lng corners to screen pixels and crop the overlay
-  // to the map canvas area. This makes the raster line up with the OSM tiles
-  // regardless of pan/zoom, because we re-project on every frame.
   function placeOverlay(){
-    if (!overlayImg) return;
+    if (!overlayImg || overlayImg.hidden) return;
     const ovs = (window.SITE && SITE.overlays) || [];
     const ov = ovs[currentOverlayIdx];
     if (!ov || !window.map) return;
@@ -550,48 +544,29 @@ html.settings-loading #tools { visibility: hidden; }
     const canvas = map.getCanvas();
     const rect = canvas.getBoundingClientRect();
 
-    // MapLibre has an internal helper we don't have access to; do it manually.
-    const c = ov.coords;               // [[W,N],[E,N],[E,S],[W,S]]
-    // project() takes [lng,lat] and returns {x,y} in canvas px
-    const p1 = map.project([c[0][0], c[0][1]]);   // NW
-    const p2 = map.project([c[1][0], c[1][1]]);   // NE
-    const p3 = map.project([c[2][0], c[2][1]]);   // SE
-    const p4 = map.project([c[3][0], c[3][1]]);   // SW
+    const c = ov.coords;
+    const p1 = map.project([c[0][0], c[0][1]]);
+    const p2 = map.project([c[1][0], c[1][1]]);
+    const p3 = map.project([c[2][0], c[2][1]]);
+    const p4 = map.project([c[3][0], c[3][1]]);
 
-    // Web-Mercator north-up: NW is top-left, SE is bottom-right on screen.
-    // If the user rotates the map, this projection breaks; the wipe is disabled
-    // in that case (see below). For a north-up raster, p1/p3 bound the rect.
     const left   = Math.min(p1.x, p2.x, p3.x, p4.x);
     const right  = Math.max(p1.x, p2.x, p3.x, p4.x);
     const top    = Math.min(p1.y, p2.y, p3.y, p4.y);
     const bottom = Math.max(p1.y, p2.y, p3.y, p4.y);
 
-    const scaleX = (right - left) / window.innerWidth;
-    const scaleY = (bottom - top) / window.innerHeight;
-
-    // Position the img absolutely over the canvas
-    overlayImg.style.position = "absolute";
-    overlayImg.style.left   = rect.left + "px";
-    overlayImg.style.top    = rect.top  + "px";
+    overlayImg.style.left   = (rect.left + left) + "px";
+    overlayImg.style.top    = (rect.top + top) + "px";
     overlayImg.style.width  = (right - left) + "px";
     overlayImg.style.height = (bottom - top) + "px";
 
-    // Use clip-path to reveal only left of splitX (a fraction of the viewport)
     const splitPx = Math.round(window.innerWidth * splitX);
     overlayImg.style.clipPath = `inset(0 ${window.innerWidth - splitPx}px 0 0)`;
   }
 
   function updateHandle(){
     if (!wipeEl) return;
-    const splitPx = Math.round(window.innerWidth * splitX);
-    wipeEl.style.left = splitPx + "px";
-  }
-
-  function findActiveOverlay(){
-    const ovs = (window.SITE && SITE.overlays) || [];
-    const ovsSel = $id("ovs");
-    const idx = ovsSel ? +ovsSel.value : 0;
-    return { ovs, idx };
+    wipeEl.style.left = Math.round(window.innerWidth * splitX) + "px";
   }
 
   function updateWipe(){
@@ -600,8 +575,8 @@ html.settings-loading #tools { visibility: hidden; }
     if (!window.map) { w.hidden = true; stage.style.display = "none"; return; }
 
     const ovs = (window.SITE && SITE.overlays) || [];
-    const ov = $id("ov");
-    const ovw = $id("ovw");
+    const ov = $("ov");
+    const ovw = $("ovw");
     if (!ov || !ovw || ovw.hidden || !ovs.length) {
       w.hidden = true; stage.style.display = "none"; return;
     }
@@ -612,14 +587,14 @@ html.settings-loading #tools { visibility: hidden; }
     w.hidden = false;
     stage.style.display = "";
 
-    const { idx } = findActiveOverlay();
+    const ovsSel = $("ovs");
+    const idx = ovsSel ? +ovsSel.value : 0;
     if (idx !== currentOverlayIdx) {
       currentOverlayIdx = idx;
       const o = ovs[idx];
       if (o && o.url) overlayImg.src = window.assetUrl ? assetUrl(o.url) : o.url;
     }
 
-    // Force the MapLibre overlay layer to 0 — we're drawing our own now
     try { ovs.forEach((_, n) => map.setPaintProperty("ov" + n, "raster-opacity", 0)); } catch(e){}
 
     placeOverlay();
@@ -632,20 +607,10 @@ html.settings-loading #tools { visibility: hidden; }
     updateHandle();
   }
 
-  function onDown(e){
-    dragging = true;
-    e.preventDefault();
-    e.stopPropagation();
-    moveSplit(e.touches ? e.touches[0].clientX : e.clientX);
-  }
-  function onMove(e){
-    if (!dragging) return;
-    e.preventDefault();
-    moveSplit(e.touches ? e.touches[0].clientX : e.clientX);
-  }
+  function onDown(e){ dragging = true; e.preventDefault(); e.stopPropagation(); moveSplit(e.touches ? e.touches[0].clientX : e.clientX); }
+  function onMove(e){ if (!dragging) return; e.preventDefault(); moveSplit(e.touches ? e.touches[0].clientX : e.clientX); }
   function onUp(){ dragging = false; }
 
-  // Wire after the map is ready
   let attempts = 0;
   const boot = setInterval(() => {
     if (!window.map || !window.map.isStyleLoaded || !window.map.isStyleLoaded()) {
@@ -663,18 +628,15 @@ html.settings-loading #tools { visibility: hidden; }
     document.addEventListener("touchmove", onMove, { passive:false });
     document.addEventListener("touchend", onUp);
 
-    // Keep the overlay in step with pan/zoom
     window.map.on("move", placeOverlay);
     window.map.on("zoom", placeOverlay);
     window.map.on("resize", () => { placeOverlay(); updateHandle(); });
 
-    // Watch the slider for state changes
-    const ov = $id("ov");
+    const ov = $("ov");
     if (ov) ov.addEventListener("input", () => setTimeout(updateWipe, 30));
-    const ovs2 = $id("ovs");
-    if (ovs2) ovs2.addEventListener("change", () => { currentOverlayIdx = -1; updateWipe(); });
+    const ovsSel = $("ovs");
+    if (ovsSel) ovsSel.addEventListener("change", () => { currentOverlayIdx = -1; updateWipe(); });
 
-    // One-time hint
     if (!sessionStorage.getItem("wipeHintShown")) {
       sessionStorage.setItem("wipeHintShown", "1");
       setTimeout(() => {
@@ -691,15 +653,11 @@ html.settings-loading #tools { visibility: hidden; }
     updateWipe();
   }, 250);
 
-  // If the user rotates the map, tell them the wipe can't line up.
-  // (Simpler than re-deriving the skew matrix, and honest.)
   if (window.map) {
     window.map.on("rotate", () => {
-      if (wipeEl && !wipeEl.hidden) {
-        if (!wipeEl._rotateWarned) {
-          wipeEl._rotateWarned = true;
-          toast && toast("Reset the compass to use the wipe — it only works north-up.");
-        }
+      if (wipeEl && !wipeEl.hidden && !wipeEl._rotateWarned) {
+        wipeEl._rotateWarned = true;
+        toast("Reset the compass to use the wipe — it only works north-up.");
       }
     });
   }
@@ -755,7 +713,96 @@ html.settings-loading #tools { visibility: hidden; }
 }
 .p-prize .meta{font-size:12px;color:#555}
 .p-prize.done .meta{color:#2e6e3a;font-weight:600}
-  
+
+/* Wipe: the handle sits above the toolbar's z-index so it's fully reachable */
+#wipe{
+  position:fixed;top:0;bottom:0;width:44px;
+  margin-left:-22px;
+  z-index:6;
+  cursor:ew-resize;touch-action:none;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:auto;
+}
+#wipe::before{
+  content:"";position:absolute;top:0;bottom:0;left:50%;
+  width:2px;background:#fff;box-shadow:0 0 0 1px #0006;
+  margin-left:-1px;
+}
+#wipe .knob{
+  width:44px;height:44px;border-radius:50%;
+  background:#fff;border:2px solid #333;
+  box-shadow:0 2px 6px #0006;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;color:#333;user-select:none;
+  pointer-events:none;
+}
+#wipe[hidden]{display:none}
+#wipeHint{
+  position:fixed;left:50%;bottom:100px;transform:translateX(-50%);
+  background:#000b;color:#fff;padding:8px 14px;border-radius:16px;
+  font-size:13px;z-index:7;pointer-events:none;
+  animation:wipeHint 4s ease-in-out forwards;
+}
+@keyframes wipeHint{
+  0%{opacity:0}15%{opacity:1}80%{opacity:1}100%{opacity:0}
+}
+
+/* Prize section in the passport drawer (replaces the earlier CSS) */
+.p-prize{
+  background:#fff8f0;border:2px solid #f0d2b5;border-radius:10px;
+  padding:10px 12px;margin:10px 0;
+}
+.p-prize.done{background:#f4fbf4;border-color:#cfe8cf}
+.p-prize h4{margin:0 0 4px;font-size:14px;color:#333}
+.p-prize .bar{
+  height:10px;border-radius:5px;background:#fff;overflow:hidden;
+  border:1px solid #e0c8a8;margin:6px 0;
+}
+.p-prize .bar>i{
+  display:block;height:100%;background:var(--bar,#E47303);
+  transition:width .3s;
+}
+.p-prize .meta{font-size:13px;color:#555;line-height:1.45}
+.p-prize.done .meta{color:#2e6e3a;font-weight:600}
+.p-prize .p-claim{
+  display:inline-block;margin-top:8px;padding:8px 14px;
+  background:#E47303;color:#fff;border:0;border-radius:6px;
+  font-size:14px;font-weight:bold;cursor:pointer;
+}
+.p-prize .p-claim:hover{background:#c65f00}
+
+/* Claim slip modal */
+#claimSlip{
+  position:fixed;inset:0;z-index:200000;
+  background:#000c;display:none;align-items:center;justify-content:center;padding:20px;
+}
+#claimSlip.on{display:flex}
+#claimSlip .slip{
+  position:relative;background:#fff8f0;
+  border:8px solid #E47303;border-radius:20px;
+  max-width:520px;width:100%;padding:28px 24px;text-align:center;
+  box-shadow:0 20px 60px #000a;
+}
+#claimSlip .slip h2{margin:0 0 10px;font-size:26px;color:#C65F00}
+#claimSlip .slip p{margin:0 0 14px;font-size:16px;line-height:1.5;color:#333}
+#claimSlip .slip .small{font-size:13px;color:#7a5c00;margin:14px 0 0}
+#claimSlip #slipCode{
+  background:#fff;border:2px dashed #E47303;border-radius:12px;
+  padding:14px;margin:14px 0;
+}
+#claimSlip #slipCode span{
+  display:block;font-size:11px;text-transform:uppercase;letter-spacing:.1em;
+  color:#7a5c00;font-weight:600;margin-bottom:6px;
+}
+#claimSlip #slipCode b{
+  display:block;font:bold 34px ui-monospace,Menlo,monospace;
+  letter-spacing:.1em;color:#C65F00;
+}
+#claimSlip .x{
+  position:absolute;top:6px;right:12px;font-size:32px;
+  border:0;background:none;cursor:pointer;color:#999;
+}
+    
 </style>
 </head>
 
@@ -3947,73 +3994,156 @@ setTimeout(() => {
 })();
 
 /* ============================================================
-   CHUNK 7 — PRIZE PROGRESS
+   CHUNK 7 — PRIZES (reads prizes.csv, respects PRIZES in site.csv)
+   A prize is earned when the visitor reaches the required star in
+   every listed stamp. Requirements are "STAMP_ID:stars" joined by |,
+   where stars is "any" | 1 | 2 | 3.
    ============================================================ */
 (function(){
-  // Load prizes.csv if present
-  async function loadPrizes(){
+  if (!window.SITE) return;
+
+  const PRIZES_READY = (async () => {
+    // respect the master switch — if PASSPORT is off, prizes hide too
+    await (window.SETTINGS_READY || Promise.resolve());
+    if (SITE.prizes === false) return [];
     try {
       const r = await (window.dataFetch ? dataFetch("prizes.csv", { cache:"no-store" }) : fetch("prizes.csv"));
       if (!r.ok) return [];
       const txt = await r.text();
       if (!txt.trim()) return [];
       return Papa.parse(txt, { header:true, skipEmptyLines:"greedy" }).data
-        .filter(r => String(r.PRIZE_ID || "").trim());
-    } catch(e){ return []; }
+        .filter(r => String(r.PRIZE_ID || "").trim())
+        .map(r => ({
+          id: String(r.PRIZE_ID).trim(),
+          label: String(r.LABEL || r.PRIZE_ID).trim(),
+          reward: String(r.REWARD || "").trim(),
+          code: String(r.CODE || "").trim(),
+          order: parseInt(r.ORDER, 10) || 9999,
+          reqs: parseRequirements(r.REQUIREMENTS)
+        }))
+        .sort((a, b) => a.order - b.order);
+    } catch (e) { return []; }
+  })();
+
+  function parseRequirements(s){
+    return String(s || "").split("|").map(x => x.trim()).filter(Boolean).map(x => {
+      const parts = x.split(":");
+      const stamp = String(parts[0] || "").trim();
+      let stars = String(parts[1] || "any").trim().toLowerCase();
+      if (stars === "") stars = "any";
+      if (stars !== "any" && !["1","2","3"].includes(stars)) stars = "any";
+      return { stamp, stars };
+    }).filter(r => r.stamp);
   }
 
-  function progressFor(prize){
-    // REQUIRED_STAMPS is a pipe-separated list of stamp IDs
-    const needed = String(prize.REQUIRED_STAMPS || "").split("|").map(s => s.trim()).filter(Boolean);
-    const got = (window.getUnlockedStamps ? getUnlockedStamps() : []).map(String);
-    const have = needed.filter(id => got.includes(id));
-    return { need: needed.length, have: have.length, done: have.length >= needed.length };
+  // Count how many stars the visitor has in a stamp. Reads the same
+  // localStorage keys the passport system uses.
+  function starsInStamp(stampId){
+    try {
+      const STAMPS = window.__stampsData || [];
+      const stamp = STAMPS.find(s => String(s.row.STAMP_ID).trim().toLowerCase() === stampId.toLowerCase());
+      if (!stamp) return 0;
+      const KEY = "connersville_stamps_v2" + (window.KEY_SUFFIX || "");
+      const progress = JSON.parse(localStorage.getItem(KEY)) || {};
+      const done = progress._done || {};
+      const bucket = progress[String(stamp.row.STAMP_ID).trim()] || {};
+      const count = stamp.tasks.filter(id => done[id] || bucket[id]).length;
+      const t1 = +stamp.row.STAR1 || Infinity;
+      const t2 = +stamp.row.STAR2 || Infinity;
+      const t3 = +stamp.row.STAR3 || Infinity;
+      if (count >= t3) return 3;
+      if (count >= t2) return 2;
+      if (count >= t1) return 1;
+      return 0;
+    } catch (e) { return 0; }
   }
 
-  function renderPrizes(prizes){
-    const body = document.querySelector(".passport-body");
-    if (!body || !prizes.length) return;
-    let box = $id("pPrizes");
-    if (!box){
-      box = document.createElement("section");
-      box.id = "pPrizes";
-      const grid = $id("stampGrid");
-      if (grid) grid.parentNode.insertBefore(box, grid);
-      else body.appendChild(box);
-    }
-    box.innerHTML = `<h3 class="p-h">Prize progress</h3>` + prizes.map(p => {
-      const { need, have, done } = progressFor(p);
-      const pct = need ? Math.round(have / need * 100) : 0;
-      return `<div class="p-prize ${done ? "done" : ""}">
-        <h4>${escapeHtml(p.LABEL || p.PRIZE_ID)}</h4>
-        <div class="bar"><i style="width:${pct}%"></i></div>
-        <div class="meta">${done ? "🎉 " + escapeHtml(p.REWARD || "You did it!") : have + " of " + need + " — " + escapeHtml(p.REWARD || "keep going!")}</div>
-      </div>`;
-    }).join("");
+  function reqMet(req){
+    const have = starsInStamp(req.stamp);
+    if (req.stars === "any") return have >= 1;
+    return have >= (+req.stars || 1);
   }
 
-  function escapeHtml(s){
+  function prizeProgress(prize){
+    const total = prize.reqs.length;
+    const met = prize.reqs.filter(reqMet).length;
+    return { total, met, done: total > 0 && met >= total };
+  }
+
+  function esc(s){
     return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
       "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
     }[c]));
   }
 
-  // Refresh prizes whenever the passport opens
-  const drawer = $id("passportDrawer");
-  if (!drawer) return;
-  let prizesLoaded = null;
-  const refresh = async () => {
-    if (!prizesLoaded) prizesLoaded = await loadPrizes();
-    if (prizesLoaded.length) renderPrizes(prizesLoaded);
-  };
-  // Initial + on each open
-  setTimeout(refresh, 4000);
-  const mo = new MutationObserver(() => {
-    if (drawer.classList.contains("open")) refresh();
-  });
-  mo.observe(drawer, { attributes:true, attributeFilter:["class"] });
-})();
+  function renderPrizes(prizes){
+    const body = document.querySelector(".passport-body");
+    if (!body || !prizes.length) return;
+    let box = document.getElementById("pPrizes");
+    if (!box){
+      box = document.createElement("section");
+      box.id = "pPrizes";
+      const grid = document.getElementById("stampGrid");
+      if (grid) grid.parentNode.insertBefore(box, grid);
+      else body.appendChild(box);
+    }
+    box.innerHTML = `<h3 class="p-h">Prizes</h3>` + prizes.map(p => {
+      const { total, met, done } = prizeProgress(p);
+      const pct = total ? Math.round(met / total * 100) : 0;
+      return `<div class="p-prize ${done ? "done" : ""}" data-prize="${esc(p.id)}">
+        <h4>${esc(p.label)}</h4>
+        <div class="bar"><i style="width:${pct}%"></i></div>
+        <div class="meta">${done ? "🎉 " + esc(p.reward || "You did it!") : met + " of " + total + " — " + esc(p.reward || "keep going!")}</div>
+        ${done ? `<button type="button" class="p-claim" data-claim="${esc(p.id)}">Show this to claim</button>` : ""}
+      </div>`;
+    }).join("");
 
+    box.querySelectorAll(".p-claim").forEach(btn => {
+      btn.onclick = () => {
+        const p = prizes.find(x => x.id === btn.dataset.claim);
+        if (p) showClaimSlip(p);
+      };
+    });
+  }
+
+  function showClaimSlip(prize){
+    let slip = document.getElementById("claimSlip");
+    if (!slip){
+      slip = document.createElement("div");
+      slip.id = "claimSlip";
+      slip.innerHTML = `<div class="slip">
+        <button class="x" type="button" aria-label="Close">&times;</button>
+        <h2 id="slipTitle"></h2>
+        <p id="slipReward"></p>
+        <div id="slipCode" hidden><span>Claim code</span><b id="slipCodeVal"></b></div>
+        <p class="small">Show this screen to the vendor.</p>
+      </div>`;
+      document.body.appendChild(slip);
+      slip.querySelector(".x").onclick = () => slip.classList.remove("on");
+      slip.addEventListener("click", e => { if (e.target === slip) slip.classList.remove("on"); });
+      document.addEventListener("keydown", e => { if (e.key === "Escape") slip.classList.remove("on"); });
+    }
+    slip.querySelector("#slipTitle").textContent = prize.label;
+    slip.querySelector("#slipReward").textContent = prize.reward || "You've earned this prize!";
+    const cbox = slip.querySelector("#slipCode");
+    if (prize.code){ slip.querySelector("#slipCodeVal").textContent = prize.code; cbox.hidden = false; }
+    else cbox.hidden = true;
+    slip.classList.add("on");
+  }
+
+  // Initial render + refresh when the passport opens or a stamp unlocks
+  PRIZES_READY.then(prizes => {
+    if (!prizes.length) return;
+    window.__prizes = prizes;
+    renderPrizes(prizes);
+
+    const drawer = document.getElementById("passportDrawer");
+    if (drawer){
+      new MutationObserver(() => {
+        if (drawer.classList.contains("open")) renderPrizes(prizes);
+      }).observe(drawer, { attributes: true, attributeFilter: ["class"] });
+    }
+  });
 })();
   
 </script>
