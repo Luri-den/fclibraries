@@ -2961,7 +2961,7 @@ function buildChips(){
     const color = (SITE.colors && SITE.colors[code]) || "#E47303";
     return `<li><button type="button" data-cat="${code}" aria-pressed="${on}">
       <span class="swatch" style="--sw:${color};background:${color}"></span>
-      ${code} <small style="opacity:.7">${counts[code]}</small>
+      ${SITE.catNames[code]} <small style="opacity:.7">${counts[code]}</small>
     </button></li>`;
   }).join("") +
   (hiddenCats.size ? `<li><button type="button" class="reset" id="catReset">Reset</button></li>` : "");
