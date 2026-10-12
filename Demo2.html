@@ -3044,21 +3044,23 @@ setTimeout(buildChips, 3000);
 /* ------------------------------------------------------------
    CHUNK 3 — THEN-AND-NOW WIPE (real hard split)
    The overlay image is drawn into its own <img> over the map,
-   clipped by the wipe handle. MapLibre's overlay layers are set
-   to 0 opacity so they don't double up.
+   clipped by the wipe handle. Only activates when the slider is
+   in the upper range; otherwise MapLibre's own overlays take
+   over normally.
    ------------------------------------------------------------ */
 (function(){
   let wipeEl = null, overlayImg = null, stageEl = null;
   let dragging = false;
   let splitX = 0.5;
   let currentOverlayIdx = -1;
+  let wipeActive = false;
 
   function ensureStage(){
     if (stageEl) return stageEl;
     const stage = document.createElement("div");
     stage.id = "wipeStage";
-    stage.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:3";
-    stage.innerHTML = `<img id="wipeImg" alt="" style="position:absolute;transform-origin:0 0;will-change:clip-path;display:none">`;
+    stage.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:3;display:none";
+    stage.innerHTML = `<img id="wipeImg" alt="" style="position:absolute;transform-origin:0 0;will-change:clip-path;display:none;pointer-events:none">`;
     document.body.appendChild(stage);
     overlayImg = stage.querySelector("#wipeImg");
     return stage;
@@ -3082,17 +3084,23 @@ setTimeout(buildChips, 3000);
 
     const map = window.map;
     const canvas = map.getCanvas();
+    if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const c = ov.coords;
-    const p1 = map.project([c[0][0], c[0][1]]);
-    const p2 = map.project([c[1][0], c[1][1]]);
-    const p3 = map.project([c[2][0], c[2][1]]);
-    const p4 = map.project([c[3][0], c[3][1]]);
+    let p1, p2, p3, p4;
+    try {
+      p1 = map.project([c[0][0], c[0][1]]);
+      p2 = map.project([c[1][0], c[1][1]]);
+      p3 = map.project([c[2][0], c[2][1]]);
+      p4 = map.project([c[3][0], c[3][1]]);
+    } catch (e) { return; }
 
     const left   = Math.min(p1.x, p2.x, p3.x, p4.x);
     const right  = Math.max(p1.x, p2.x, p3.x, p4.x);
     const top    = Math.min(p1.y, p2.y, p3.y, p4.y);
     const bottom = Math.max(p1.y, p2.y, p3.y, p4.y);
+
+    if (!isFinite(left) || !isFinite(right) || right <= left || bottom <= top) return;
 
     overlayImg.style.left   = (rect.left + left) + "px";
     overlayImg.style.top    = (rect.top + top) + "px";
@@ -3108,44 +3116,38 @@ setTimeout(buildChips, 3000);
     wipeEl.style.left = Math.round(window.innerWidth * splitX) + "px";
   }
 
-  function updateWipe(){
+  // Decide whether the wipe should be on. Called on slider move.
+  function setWipeActive(on){
+    if (on === wipeActive) return;
+    wipeActive = on;
+
     const stage = ensureStage();
     const w = ensureHandle();
-    if (!window.map) { w.hidden = true; stage.style.display = "none"; return; }
-
     const ovs = (window.SITE && SITE.overlays) || [];
-    const ov = $id("ov");
-    const ovw = $id("ovw");
-    if (!ov || !ovw || ovw.hidden || !ovs.length){
-      w.hidden = true; stage.style.display = "none"; return;
-    }
 
-    const active = +ov.value > 0;
-    if (!active){
-      w.hidden = true; stage.style.display = "none";
-      return;
-    }
-
-    w.hidden = false;
-    stage.style.display = "";
-
-    const ovsSel = $id("ovs");
-    const idx = ovsSel ? +ovsSel.value : 0;
-    if (idx !== currentOverlayIdx){
-      currentOverlayIdx = idx;
-      const o = ovs[idx];
-      if (o && o.url){
-        overlayImg.src = window.assetUrl ? assetUrl(o.url) : o.url;
-        overlayImg.style.display = "";
+    if (on && ovs.length){
+      // switch MapLibre's overlays off; our img takes over
+      try { ovs.forEach((_, n) => map.setPaintProperty("ov" + n, "raster-opacity", 0)); } catch(e){}
+      stage.style.display = "";
+      overlayImg.style.display = "";
+      w.hidden = false;
+      placeOverlay();
+      updateHandle();
+    } else {
+      // back to MapLibre's native overlay control
+      stage.style.display = "none";
+      overlayImg.style.display = "none";
+      w.hidden = true;
+      // Let the initOverlays apply() put the right value back.
+      const ov = $id("ov");
+      const ovsSel = $id("ovs");
+      if (ov && ovsSel) {
+        ovs.forEach((_, n) => {
+          try { map.setPaintProperty("ov" + n, "raster-opacity", n == ovsSel.value ? ov.value / 100 : 0); } catch(e){}
+        });
       }
     }
-
-    try { ovs.forEach((_, n) => map.setPaintProperty("ov" + n, "raster-opacity", 0)); } catch(e){}
-
-    placeOverlay();
-    updateHandle();
   }
-  window.__updateWipe = updateWipe;
 
   function moveSplit(clientX){
     splitX = Math.max(0.02, Math.min(0.98, clientX / window.innerWidth));
@@ -3165,9 +3167,17 @@ setTimeout(buildChips, 3000);
   }
   function onUp(){ dragging = false; }
 
+  // Wait for the overlays to exist, then wire up.
   let attempts = 0;
   const boot = setInterval(() => {
     if (!window.map || !window.map.isStyleLoaded || !window.map.isStyleLoaded()) {
+      if (++attempts > 40) clearInterval(boot);
+      return;
+    }
+    const ovs = (window.SITE && SITE.overlays) || [];
+    if (!ovs.length) { if (++attempts > 40) clearInterval(boot); return; }
+    // confirm layer 0 actually exists yet
+    if (!window.map.getLayer || !window.map.getLayer("ov0")) {
       if (++attempts > 40) clearInterval(boot);
       return;
     }
@@ -3187,10 +3197,26 @@ setTimeout(buildChips, 3000);
     window.map.on("resize", () => { placeOverlay(); updateHandle(); });
 
     const ov = $id("ov");
-    if (ov) ov.addEventListener("input", () => setTimeout(updateWipe, 30));
     const ovsSel = $id("ovs");
-    if (ovsSel) ovsSel.addEventListener("change", () => { currentOverlayIdx = -1; updateWipe(); });
 
+    // Decide whether to activate the wipe based on the slider's value.
+    // Rule: wipe on when value > 0, off at 0. Simpler than two competing UIs.
+    const refresh = () => {
+      const value = ov ? +ov.value : 0;
+      const overlaysShown = !!ovsSel;
+      setWipeActive(overlaysShown && value > 0);
+      // move the split proportionally as the user drags the slider
+      if (wipeActive) {
+        splitX = 0.5;
+        placeOverlay();
+        updateHandle();
+      }
+    };
+
+    if (ov) ov.addEventListener("input", refresh);
+    if (ovsSel) ovsSel.addEventListener("change", () => { currentOverlayIdx = -1; refresh(); });
+
+    // first-run hint
     if (!sessionStorage.getItem("wipeHintShown")){
       sessionStorage.setItem("wipeHintShown", "1");
       setTimeout(() => {
@@ -3203,7 +3229,8 @@ setTimeout(buildChips, 3000);
         }
       }, 1200);
     }
-    updateWipe();
+
+    refresh();
   }, 250);
 })();
 
