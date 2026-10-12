@@ -24,7 +24,7 @@ html.settings-loading #tools { visibility: hidden; }
 #res{list-style:none;margin:2px 0 0;padding:0;background:#fff;color:#000;border-radius:4px;max-height:40vh;overflow:auto}
 #res button{width:100%;text-align:left;padding:10px;border:0;background:none;font-size:15px;border-bottom:1px solid #eee}
 
-#map{position:absolute;inset:0;overflow:hidden}
+#map{position:absolute;inset:0}
 
 #leaders{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 #leaders path{fill:#E47303;stroke:#fff;stroke-width:1.5}
@@ -428,33 +428,6 @@ html.settings-loading #tools { visibility: hidden; }
   #panel.snap-closed{transform:translateY(100%)}
 }
 
-/* WIPE HANDLE */
-#wipe{
-  position:absolute;
-  width:44px;
-  margin-left:-22px;
-  z-index:6;
-  cursor:ew-resize;touch-action:none;
-  display:flex;align-items:center;justify-content:center;
-  pointer-events:auto;
-}
-#wipe::before{
-  content:"";position:absolute;top:0;bottom:0;left:50%;
-  width:2px;background:#fff;box-shadow:0 0 0 1px #0006;
-  margin-left:-1px;
-}
-#wipe .knob{
-  width:44px;height:44px;border-radius:50%;
-  background:#fff;border:2px solid #333;
-  box-shadow:0 2px 6px #0006;
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;color:#333;user-select:none;
-  pointer-events:none;
-}
-#wipe[hidden]{display:none}
-
-/* Wipe mode button — matches the other tool buttons */
-#wipeBtn[aria-pressed="true"]{background:#222;color:#fff}
 /* SHARE BUTTON & TOAST */
 .share-btn{
   display:inline-flex;align-items:center;gap:6px;
@@ -1649,8 +1622,8 @@ async function initOverlays(){
   const apply = () => o.forEach((x,n) =>
     map.setPaintProperty("ov" + n, "raster-opacity", n == $("ovs").value ? $("ov").value / 100 : 0)
   );
-  $("ov").oninput = () => { apply(); updateMoreDot(); if (window.__updateWipe) window.__updateWipe(); };
-  $("ovs").onchange = () => { apply(); if (window.__updateWipe) window.__updateWipe(); };
+  $("ov").oninput = () => { apply(); updateMoreDot(); };
+  $("ovs").onchange = apply;
 }
 
 $("near").onclick = () => {
@@ -2846,7 +2819,6 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeEventPa
    POST-LOAD ENHANCEMENTS
    - Mobile half-sheet panel
    - Category filter chips
-   - Then-and-now wipe (real hard split)
    - Deep-linking & share
    - Offline cache
    - Prize progress (uses prizes.csv)
@@ -3007,209 +2979,6 @@ function buildChips(){
 window.__buildChips = buildChips;
 setTimeout(buildChips, 3000);
 
-/* ------------------------------------------------------------
-   CHUNK 3 — THEN-AND-NOW WIPE
-   A separate mode. Off by default. When on, the old map shows on
-   one side of a draggable handle and the modern map on the other.
-   When off, MapLibre's native overlay and the opacity slider work
-   exactly as before. The two systems never touch each other.
-   ------------------------------------------------------------ */
-(function(){
-  const MAP_EL = () => document.getElementById("map") || document.body;
-  let stageEl = null, overlayImg = null, wipeEl = null;
-  let dragging = false;
-  let wipeActive = false;
-  let currentOverlayIdx = -1;
-
-  function ensureWipeButton(){
-    if (document.getElementById("wipeBtn")) return;
-    const tools = $("toolsMore") || $("tools");
-    if (!tools) return;
-    const btn = document.createElement("button");
-    btn.id = "wipeBtn";
-    btn.type = "button";
-    btn.textContent = "Then/Now";
-    btn.setAttribute("aria-pressed", "false");
-    btn.onclick = toggleWipe;
-    tools.appendChild(btn);
-  }
-
-  function ensureStage(){
-    if (stageEl) return stageEl;
-    const stage = document.createElement("div");
-    stage.id = "wipeStage";
-    // Sits inside #map, absolutely positioned to fill it. pointer-events none,
-    // so it never blocks the map. Hidden until wipe mode is on.
-    stage.style.cssText = "position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2;display:none";
-    stage.innerHTML = `<img id="wipeImg" alt="" style="position:absolute;transform-origin:0 0;will-change:clip-path;display:none;pointer-events:none">`;
-    MAP_EL().appendChild(stage);
-    overlayImg = stage.querySelector("#wipeImg");
-    return stage;
-  }
-
-  function ensureHandle(){
-    if (wipeEl) return wipeEl;
-    wipeEl = document.createElement("div");
-    wipeEl.id = "wipe";
-    wipeEl.hidden = true;
-    wipeEl.innerHTML = `<div class="knob" aria-hidden="true">⇆</div>`;
-    // Also inside #map. Absolutely positioned so it stays inside the map bounds.
-    wipeEl.style.position = "absolute";
-    MAP_EL().appendChild(wipeEl);
-    return wipeEl;
-  }
-
-  // Where #map is on screen right now (it can shift if the toolbar resizes).
-  function mapBox(){
-    const el = MAP_EL();
-    return el.getBoundingClientRect();
-  }
-
-  function placeOverlay(){
-    if (!overlayImg || overlayImg.style.display === "none") return;
-    const ovs = (window.SITE && SITE.overlays) || [];
-    const ov = ovs[currentOverlayIdx];
-    if (!ov || !window.map) return;
-
-    const map = window.map;
-    const canvas = map.getCanvas();
-    if (!canvas) return;
-    const canvasBox = canvas.getBoundingClientRect();
-    const mapRect = mapBox();
-    const c = ov.coords;
-
-    let p1, p2, p3, p4;
-    try {
-      p1 = map.project([c[0][0], c[0][1]]);
-      p2 = map.project([c[1][0], c[1][1]]);
-      p3 = map.project([c[2][0], c[2][1]]);
-      p4 = map.project([c[3][0], c[3][1]]);
-    } catch (e) { return; }
-
-    const left   = Math.min(p1.x, p2.x, p3.x, p4.x);
-    const right  = Math.max(p1.x, p2.x, p3.x, p4.x);
-    const top    = Math.min(p1.y, p2.y, p3.y, p4.y);
-    const bottom = Math.max(p1.y, p2.y, p3.y, p4.y);
-    if (!isFinite(left) || !isFinite(right) || right <= left || bottom <= top) return;
-
-    // Coordinates are relative to #map, not the viewport.
-    overlayImg.style.left   = (canvasBox.left - mapRect.left + left) + "px";
-    overlayImg.style.top    = (canvasBox.top  - mapRect.top  + top ) + "px";
-    overlayImg.style.width  = (right - left) + "px";
-    overlayImg.style.height = (bottom - top) + "px";
-
-    const splitPx = Math.round(canvasBox.width * splitFraction());
-    overlayImg.style.clipPath = `inset(0 ${canvasBox.width - splitPx}px 0 0)`;
-  }
-
-  // The split position is stored as a fraction, independent of the slider.
-  let splitValue = 0.5;
-  function splitFraction(){ return Math.max(0.05, Math.min(0.95, splitValue)); }
-
-  function updateHandle(){
-    if (!wipeEl || wipeEl.hidden) return;
-    const mapRect = mapBox();
-    const canvasBox = window.map && window.map.getCanvas && window.map.getCanvas().getBoundingClientRect();
-    if (!canvasBox) return;
-    // Handle is a vertical line inside #map, from the canvas top to bottom.
-    wipeEl.style.top    = (canvasBox.top - mapRect.top) + "px";
-    wipeEl.style.height = canvasBox.height + "px";
-    wipeEl.style.left   = (canvasBox.left - mapRect.left + canvasBox.width * splitFraction()) + "px";
-  }
-
-  function setHandleValueFromPointer(clientX){
-    const canvasBox = window.map && window.map.getCanvas && window.map.getCanvas().getBoundingClientRect();
-    if (!canvasBox || !canvasBox.width) return;
-    splitValue = Math.max(0.05, Math.min(0.95, (clientX - canvasBox.left) / canvasBox.width));
-    placeOverlay();
-    updateHandle();
-  }
-
-  function toggleWipe(){
-    wipeActive = !wipeActive;
-    const btn = document.getElementById("wipeBtn");
-    if (btn) {
-      btn.setAttribute("aria-pressed", wipeActive ? "true" : "false");
-      btn.classList.toggle("on", wipeActive);
-    }
-    const stage = ensureStage();
-    const w = ensureHandle();
-    const ovs = (window.SITE && SITE.overlays) || [];
-
-    if (wipeActive && ovs.length){
-      // Pick the overlay currently chosen in the dropdown
-      const ovsSel = $id("ovs");
-      currentOverlayIdx = ovsSel ? +ovsSel.value : 0;
-      const o = ovs[currentOverlayIdx];
-      if (o && o.url) overlayImg.src = window.assetUrl ? assetUrl(o.url) : o.url;
-      // Force MapLibre's own overlays to zero — the img takes over.
-      try { ovs.forEach((_, n) => map.setPaintProperty("ov" + n, "raster-opacity", 0)); } catch(e){}
-      stage.style.display = "";
-      overlayImg.style.display = "";
-      w.hidden = false;
-      placeOverlay();
-      updateHandle();
-    } else {
-      // Back to MapLibre's overlays; let the slider apply normally.
-      stage.style.display = "none";
-      overlayImg.style.display = "none";
-      w.hidden = true;
-      const ov = $id("ov");
-      const ovsSel = $id("ovs");
-      if (ov && ovsSel) {
-        ovs.forEach((_, n) => {
-          try { map.setPaintProperty("ov" + n, "raster-opacity", n == ovsSel.value ? ov.value / 100 : 0); } catch(e){}
-        });
-      }
-    }
-  }
-
-  function onDown(e){
-    dragging = true;
-    e.preventDefault();
-    e.stopPropagation();
-    setHandleValueFromPointer(e.touches ? e.touches[0].clientX : e.clientX);
-  }
-  function onMove(e){
-    if (!dragging) return;
-    e.preventDefault();
-    setHandleValueFromPointer(e.touches ? e.touches[0].clientX : e.clientX);
-  }
-  function onUp(){ dragging = false; }
-
-  // Boot: create the button and wire everything up once overlays exist.
-  let attempts = 0;
-  const boot = setInterval(() => {
-    if (!window.map || !window.map.isStyleLoaded || !window.map.isStyleLoaded()) {
-      if (++attempts > 40) clearInterval(boot);
-      return;
-    }
-    const ovs = (window.SITE && SITE.overlays) || [];
-    if (!ovs.length) { if (++attempts > 40) clearInterval(boot); return; }
-    if (!window.map.getLayer || !window.map.getLayer("ov0")) {
-      if (++attempts > 40) clearInterval(boot);
-      return;
-    }
-    clearInterval(boot);
-
-    ensureWipeButton();
-    const w = ensureHandle();
-    w.addEventListener("pointerdown", onDown);
-    w.addEventListener("touchstart", onDown, { passive:false });
-    document.addEventListener("pointermove", onMove, { passive:false });
-    document.addEventListener("pointerup", onUp);
-    document.addEventListener("pointercancel", onUp);
-    document.addEventListener("touchmove", onMove, { passive:false });
-    document.addEventListener("touchend", onUp);
-
-    const redraw = () => { if (wipeActive){ placeOverlay(); updateHandle(); } };
-    window.map.on("move", redraw);
-    window.map.on("zoom", redraw);
-    window.map.on("resize", redraw);
-    window.addEventListener("resize", redraw);
-    window.addEventListener("scroll", redraw, { passive:true });
-  }, 250);
-})();
 
 /* ------------------------------------------------------------
    CHUNK 5 — DEEP-LINKING & SHARE
