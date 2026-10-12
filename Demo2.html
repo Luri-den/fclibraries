@@ -11,7 +11,7 @@
 html,body{margin:0;height:100%;font-family:Arial,sans-serif}
 html.settings-loading #bar,
 html.settings-loading #tools { visibility: hidden; }
-  
+
 #bar{position:absolute;z-index:5;top:0;left:0;right:0;background:var(--bar,#E47303);color:#fff;padding:calc(6px + env(safe-area-inset-top)) 10px 8px;display:flex;flex-direction:column;gap:6px}
 .bar-top{display:flex;justify-content:space-between;align-items:center}
 #bar h1{font-size:17px;margin:0}
@@ -69,14 +69,9 @@ html.settings-loading #tools { visibility: hidden; }
 #yticks em{position:absolute;top:8px;transform:translateX(-50%);font:normal 10px/1 Arial,sans-serif;color:#fff;white-space:nowrap}
 #tools label#ovw{flex:1 1 260px}   /* the label rule above would otherwise override the hidden attribute */
 
-/* ── FIX: removed the stray #panel rule that was overriding max-height (240px) and
-   applying object-fit to a non-replaced element. It also clamped the panel so the
-   gallery inside it got pushed out of view. See the note below the base rule. */
 #panel{position:absolute;z-index:6;left:0;right:0;bottom:0;max-height:55vh;overflow:auto;background:#fff;padding:12px 14px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -2px 8px #0005;box-sizing:border-box}
 
-/* ── FIX: the panel had NO rule for its cover <img>, so the browser rendered it at
-   natural size and the panel's overflow:auto sliced it. This targets only the cover
-   image (and any non-gallery image inside #panel) so .gal img keeps its own sizing. */
+/* Cover image inside the panel: sized, not left at natural size */
 #panel > img,
 #panel img:not(.gal img):not(.is-default){
   display:block;
@@ -394,7 +389,7 @@ html.settings-loading #tools { visibility: hidden; }
 #imgView .caption{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);color:#fff;padding:12px;font-size:14px;text-align:center;border-radius:0 0 12px 12px;pointer-events:none}
 #imgView button.close-lightbox{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;background:none;border:0;cursor:pointer;z-index:99999}
 
-/* ── FIX: lightbox prev/next arrows ───────────────────────────────── */
+/* Lightbox prev/next arrows */
 #imgView .lb-nav{
   position:absolute;top:50%;transform:translateY(-50%);
   width:52px;height:52px;border-radius:50%;
@@ -413,7 +408,6 @@ html.settings-loading #tools { visibility: hidden; }
   #imgView .lb-prev{left:8px}
   #imgView .lb-next{right:8px}
 }
-/* ─────────────────────────────────────────────────────────────────── */
 
 /* Shared still+video wrapper used in the spot card and tour card */
 .photo-anim{position:relative;display:block;line-height:0}
@@ -437,7 +431,7 @@ html.settings-loading #tools { visibility: hidden; }
 <body>
 
 <div id="welcomeOverlay" role="button" aria-label="Skip welcome introduction">
-  <img id="welcomeImage" alt="Explore">
+  <img id="welcomeImage" alt="Explore Franklin County">
   <div id="welcomeSite" hidden>
     <svg id="wsLine"></svg>
     <img id="wsPhoto" alt="">
@@ -545,7 +539,6 @@ html.settings-loading #tools { visibility: hidden; }
   <div class="stage">
     <img id="lightboxImg" alt="">
     <video id="lightboxVid" muted playsinline preload="metadata" hidden></video>
-    <!-- ── FIX: prev/next arrows (hidden by JS when there's only one photo) -->
     <button type="button" class="lb-nav lb-prev" aria-label="Previous photo">&#8249;</button>
     <button type="button" class="lb-nav lb-next" aria-label="Next photo">&#8250;</button>
     <div class="caption" style="display:none"></div>
@@ -556,6 +549,7 @@ html.settings-loading #tools { visibility: hidden; }
 <script src="welcome-themes.js"></script>
 <script src="marker-shapes.js"></script>
 <script src="schedule.js"></script>
+<script src="marker-fill.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
   // Fallback: if the primary CDN fails, try unpkg
@@ -908,6 +902,7 @@ SITE.overlaySlider = true;    // OVERLAY_SLIDER in site.csv: no = no old-map ove
 SITE.welcomeTheme = "";       // WELCOME_THEME in site.csv: blank = the classic welcome1.gif; or halloween, fall, winter
 SITE.welcomeText = "";        // WELCOME_TEXT in site.csv: "Welcome to|{PLACE}" (| = new line)
 SITE.place = "";              // PLACE in site.csv
+SITE.fills = {};              // CATEGORY code -> { fill, fillColor, fillColor2 }, from the FILL columns of categories.csv
 SITE.shapes = {};             // CATEGORY code -> shape code, from the SHAPE column of categories.csv
 SITE.customShapes = {};       // your own shapes, from shapes.csv
 SITE.event = { button: "About", title: "", text: "" };   // EVENT_BUTTON / EVENT_TITLE / EVENT_TEXT in site.csv
@@ -954,7 +949,7 @@ Promise.race([
 ]).finally(() => {
   document.documentElement.classList.remove("settings-loading");
 });
-  
+
 /* ===== photos.csv: ITEM_ID, ORDER, PATH, CAPTION, CREDIT =====
    Row 1 of an item = caption and credit for its main photo (PATH blank = use the usual main photo).
    Rows 2+ = extra photos with their own PATH, caption and credit. Items with no rows work as before. */
@@ -1014,7 +1009,7 @@ async function applySettingsToMap(){
   if (SITE.maxZoom !== null) map.setMaxZoom(SITE.maxZoom);
   if (!SITE.fitMarkers && !spotId && !siteId) map.jumpTo({ center: SITE.center, zoom: SITE.zoom });
 }
-  
+
 const map = new maplibregl.Map({
   container: "map",
   style: {
@@ -1085,6 +1080,7 @@ function thumb(id, category, path){
     console.warn("No photo for " + id + ", using category icon");
     im.onerror = null;
     im.classList.add("is-default");
+    if (hasFill(category)) im.classList.add("is-fill");
     im.src = iconFor(category);
   };
 
@@ -1099,11 +1095,14 @@ function thumb(id, category, path){
 // Default icon for places with no photo. Each category's icon comes from categories.csv (ICON column);
 // these are the fallbacks when that file or column is missing.
 const DEFAULT_CATEGORY_ICON = { CIV:"courthouse", COMM:"store", RES:"house", IND:"factory", RAIL:"train", RAILROAD:"train", CANAL:"boat" };
+const hasFill = cat => !!(SITE.fills && SITE.fills[String(cat || "").trim().toUpperCase()]);
 function iconFor(cat){
   const code = String(cat || "").trim().toUpperCase();
+  const f = SITE.fills && SITE.fills[code];
+  if (f && window.MarkerFill) return MarkerFill.url(f.fill, f.fillColor, f.fillColor2);   // a color or pattern instead of an icon
   return iconUrl((SITE.icons && SITE.icons[code]) || DEFAULT_CATEGORY_ICON[code] || "generic");
 }
-  
+
 /* ============================================================
    CSV LOADING
    ============================================================ */
@@ -1217,6 +1216,7 @@ CATS.forEach(r => {
   if (!code) return;
   if (/^#[0-9a-f]{3,8}$/i.test(color)) SITE.colors[code === "DEFAULT" ? "default" : code] = color;
   if (icon && ICONS[icon]) SITE.icons[code] = icon;
+  if (window.MarkerFill) { const f = MarkerFill.fromRow(r, color); if (f) SITE.fills[code] = f; }
   SITE.catNames[code] = String(r.LABEL || code).trim();
   if (window.MarkerShapes && r.SHAPE) SITE.shapes[code] = MarkerShapes.slug(r.SHAPE);
   if (SITE.ranked) SITE.ranked[code] = String(r.RANKED || "").trim().toLowerCase() === "yes";
@@ -1446,7 +1446,7 @@ function travelTo(fromLl, toLl, vehicleKey){
         <div class="vehicle">${vehicleSVG(v)}</div>
         ${meta.puff ? `<div class="puff">${VEHICLE_PUFF}</div>` : ""}
       </div>`;
-    
+
     const marker = new maplibregl.Marker({ element: wrap, anchor: "center" })
       .setLngLat(fromLl)
       .addTo(map);
@@ -2253,11 +2253,10 @@ $("res").onclick = e => {
   const imgEl   = document.getElementById("lightboxImg");
   const vidEl   = document.getElementById("lightboxVid");
   const caption = view.querySelector(".caption");
-  // ── FIX: grab the arrow buttons we added to the markup
   const prevBtn = view.querySelector(".lb-prev");
   const nextBtn = view.querySelector(".lb-next");
 
-  // ── FIX: the lightbox now holds a group of photos + an index, so < > can step through them.
+  // The lightbox holds a group of photos + an index, so < > can step through them.
   let group = [];
   let gi = 0;
   let currentSrc = null;
@@ -2268,7 +2267,7 @@ $("res").onclick = e => {
     return m ? assetUrl("anims/" + m[1] + ".mp4") : null;
   }
 
-  // ── FIX: collect every real photo in the same card as the one that was clicked.
+  // Collect every real photo in the same card as the one that was clicked.
   // Icons (is-default) and duplicated sources are skipped. Order matches DOM order,
   // so the cover comes first, then the gallery shots.
   function collectGroup(im) {
@@ -2298,7 +2297,7 @@ $("res").onclick = e => {
     gi = 0;
   }
 
-  // ── FIX: show the photo at index i (wraps around), with its own caption and optional anim video
+  // Show the photo at index i (wraps around), with its own caption and optional anim video
   function showAt(i) {
     if (!group.length) return;
     gi = (i + group.length) % group.length;
@@ -2336,7 +2335,7 @@ $("res").onclick = e => {
     nextBtn.hidden = !multi;
   }
 
-  // ── FIX: openLightbox is now list + index aware. Kept backward-compatible:
+  // openLightbox is list + index aware. Kept backward-compatible:
   // if something else calls it with a single src string, we wrap it as a one-item group.
   function openLightbox(listOrSrc, indexOrFallback, text) {
     if (Array.isArray(listOrSrc)) {
@@ -2359,7 +2358,7 @@ $("res").onclick = e => {
     }
   }
 
-  // ── FIX: build a group from the clicked image's card and pass it through
+  // Build a group from the clicked image's card and pass it through
   document.addEventListener("click", e => {
     const im = e.target.closest("#panel img, #spotCard img, #tourCard img, .photo-anim img");
     if (!im) return;
@@ -2394,7 +2393,7 @@ $("res").onclick = e => {
     closeView();
   });
 
-  // ── FIX: arrow button handlers (stopPropagation so the backdrop click doesn't also close)
+  // Arrow button handlers (stopPropagation so the backdrop click doesn't also close)
   prevBtn.addEventListener("click", e => { e.stopPropagation(); showAt(gi - 1); });
   nextBtn.addEventListener("click", e => { e.stopPropagation(); showAt(gi + 1); });
 
@@ -2786,7 +2785,7 @@ $("res").onclick = e => {
     autoTimer = setTimeout(() => dismiss(replay), duration);
   }
 
- 
+
 function dismiss(replay){
   if (!slam.classList.contains("on")) return;
 
