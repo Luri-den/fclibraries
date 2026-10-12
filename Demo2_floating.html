@@ -515,8 +515,6 @@ html.settings-loading #tools { visibility: hidden; }
 
 /* ===== Floating search layout ===== */
 
-/* --- Row 1: Search · Near Me · About · Aerial · Tours · Stories · Categories · Passport --- */
-
 #q{
   order:10;
   flex:1 1 260px;
@@ -532,10 +530,8 @@ html.settings-loading #tools { visibility: hidden; }
 
 #near      { order:20; }
 #eventBtn  { order:21; }
-#aerialBtn { order:22; }
-#tour      { order:23; }
-#tours     { order:24; }
-#stories   { order:25; }
+#moreBtn   { order:22; }
+#passportBtn{ order:40; flex:0 0 auto; border:2px solid var(--bar,#E47303); padding:4px 12px; }
 
 #catChipsWrap{
   order:30;
@@ -567,15 +563,6 @@ html.settings-loading #tools { visibility: hidden; }
 #catChips button[aria-pressed="false"]{opacity:.55}
 #catChips .reset{background:var(--bar,#E47303);color:#fff}
 
-#passportBtn{
-  order:40;
-  flex:0 0 auto;
-  border:2px solid var(--bar,#E47303);
-  padding:4px 12px;
-  margin-left:auto;
-}
-
-/* search results drop below everything else on row 1 */
 #res{
   order:45;
   flex:1 1 100%;
@@ -584,51 +571,56 @@ html.settings-loading #tools { visibility: hidden; }
   box-shadow:0 2px 8px rgba(0,0,0,.35);
 }
 
-/* --- Row 2: Year slider · Old Maps --- */
-
-#tools{display:contents}
-
-/* the fold-away "More" button is not needed at desktop; hide it and show its contents inline */
-#moreBtn{display:none!important}
-#toolsMore{display:contents!important}
-
-#yearBox{ order:60; flex:0 0 auto; }
-#ovw    { order:61; flex:0 0 auto; }
-
-#yearBox,#ovw{
-  background:var(--bar,#E47303);
-  color:#fff;
-  padding:6px 12px;
-  border-radius:14px;
-  box-shadow:0 1px 4px rgba(0,0,0,.35);
+/* --- Desktop: everything inline, More folds away --- */
+@media (min-width:721px){
+  #tools{display:contents}
+  #moreBtn{display:none!important}
+  #toolsMore{display:contents!important}
+  #tour      { order:23; }
+  #tours     { order:24; }
+  #stories   { order:25; }
+  #aerialBtn { order:22; }
+  #yearBox   { order:60; flex:0 0 auto; }
+  #ovw       { order:61; flex:0 0 auto; }
+  #yearBox,#ovw{
+    background:var(--bar,#E47303);
+    color:#fff;
+    padding:6px 12px;
+    border-radius:14px;
+    box-shadow:0 1px 4px rgba(0,0,0,.35);
+  }
+  #passportBtn{margin-left:auto}
+  #tools button{
+    padding:7px 13px;
+    border-radius:999px;
+    font-weight:600;
+    box-shadow:0 1px 4px rgba(0,0,0,.35);
+  }
 }
 
-/* generic look for tool buttons */
-#tools button{
-  padding:7px 13px;
-  border-radius:999px;
-  font-weight:600;
-  box-shadow:0 1px 4px rgba(0,0,0,.35);
-}
-
-/* --- Phones: let it wrap more loosely --- */
+/* --- Mobile: search on its own row; Near Me · About · More · Passport on the next --- */
 @media (max-width:720px){
   #q{flex:1 1 100%}
-  #passportBtn{margin-left:0}
-  #catChipsWrap{flex:1 1 100%}
-  #catChips{flex-wrap:wrap;overflow-x:visible}
-  #moreBtn{display:inline-block!important}
+  #near      { order:20; }
+  #eventBtn  { order:21; }
+  #moreBtn   { order:22; display:inline-block!important; }
+  #passportBtn{ order:40; margin-left:auto; }
+  #tools{display:contents}
   #toolsMore{display:none!important}
   #tools.open #toolsMore{
     display:flex!important;
+    order:50;
     flex:1 1 100%;
     flex-wrap:wrap;
+    gap:8px;
     background:var(--bar,#E47303);
     padding:10px;
     border-radius:16px;
     box-shadow:0 2px 8px rgba(0,0,0,.35);
     box-sizing:border-box;
   }
+  #catChipsWrap{flex:1 1 100%}
+  #catChips{flex-wrap:wrap;overflow-x:visible}
 }
 
 </style>
@@ -681,10 +673,12 @@ html.settings-loading #tools { visibility: hidden; }
   <ul id="res" hidden></ul>
   <div id="tools">
     <button id="near" type="button">Near Me</button>
-    <button id="tour" type="button" hidden>Take the Tour</button>
     <button id="eventBtn" type="button" hidden>About</button>
     <button id="moreBtn" type="button" aria-expanded="false" aria-controls="toolsMore" hidden>More &#9662;</button>
     <div id="toolsMore">
+      <button id="tour" type="button" hidden>Take the Tour</button>
+      <button id="tours" type="button" hidden>Tours</button>
+      <button id="stories" type="button" aria-pressed="false">Show All Stories and Spots</button>
       <div id="catChipsWrap" hidden>
         <ul id="catChips" aria-label="Filter by category"></ul>
       </div>
@@ -693,7 +687,6 @@ html.settings-loading #tools { visibility: hidden; }
       <label id="ovw" hidden>Old Maps <select id="ovs"></select> <input id="ov" type="range" min="0" max="100" value="0" aria-label="Old map opacity"></label>
     </div>
   </div>
-</div>
 
 <div id="map"></div>
 <aside id="panel" hidden aria-live="polite"></aside>
@@ -2026,11 +2019,6 @@ $("res").onclick = e => {
       `<span>${icon("spot","#333333")} Photo spot</span>` +
       `<span>${icon("story","#D55E00")} Story</span>` +
     `</div>`);
-
-  $("toolsMore").insertAdjacentHTML("afterbegin",
-    `<button id="tours" type="button" hidden>Tours</button>` +
-    `<button id="stories" type="button" aria-pressed="false">Show All Stories and Spots</button>`);
-  if (typeof syncMoreBtn === "function") syncMoreBtn();
 
   $("tours").onclick = listTours;
 
