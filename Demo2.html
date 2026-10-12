@@ -718,9 +718,10 @@ const key = s => String(s || "").trim().toLowerCase();
    ============================================================ */
 const EVENT_SLUG = (() => { const v = new URLSearchParams(location.search).get("event") || ""; return v.toLowerCase() !== "main" && /^[a-z0-9][a-z0-9_-]*$/i.test(v) ? v.toLowerCase() : ""; })();   // ?event=main means "the usual map"
 const EVENT_DIR = EVENT_SLUG ? "events/" + EVENT_SLUG + "/" : "";
-  window.KEY_SUFFIX = KEY_SUFFIX;
-window.EVENT_DIR = EVENT_DIR;
 const KEY_SUFFIX = EVENT_SLUG ? "@" + EVENT_SLUG : "";      // keeps each event's passport progress separate
+
+window.EVENT_DIR = EVENT_DIR;
+window.KEY_SUFFIX = KEY_SUFFIX;
 let EVENT_INFO = null;                                       // events/name/event.json: which data files and folders the event holds
 const EVENT_READY = EVENT_SLUG
   ? fetch(EVENT_DIR + "event.json", { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null).then(j => { EVENT_INFO = j; })
