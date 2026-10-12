@@ -16,7 +16,6 @@
     return '<g transform="' + base + '"><g><animateTransform attributeName="transform" type="translate" values="' + o.path + '" dur="' + o.dur.toFixed(1) + 's" begin="' + begin + '" repeatCount="indefinite"/><g>' + spin + shape + "</g></g></g>";
   }
 
-  // --- HALLOWEEN GHOSTS GRAPHICS ---
   const GHOST = '<path d="M0 40C0 8 12-18 30-18S60 8 60 40V70L50 60 40 70 30 60 20 70 10 60 0 70Z" fill="#fff" fill-opacity=".88" stroke="#2b1646" stroke-width="2"/>' +
     '<circle cx="21" cy="14" r="4.5" fill="#2b1646"/><circle cx="39" cy="14" r="4.5" fill="#2b1646"/><ellipse cx="30" cy="30" rx="5" ry="6.5" fill="#2b1646"/>';
 
@@ -31,7 +30,6 @@
     return out;
   }
 
-  // --- FALL LEAVES GRAPHICS ---
   const LEAF_COLORS = ["#c2410c", "#d97706", "#b91c1c", "#a16207", "#ea580c"];
   function leaves(on) {
     const r = rng(5);
@@ -46,7 +44,6 @@
     return out;
   }
 
-  // --- WINTER SNOW GRAPHICS ---
   function snow(on) {
     const r = rng(3);
     let out = "";
@@ -58,42 +55,12 @@
     return out;
   }
 
-  // --- SPRING POND FROG GRAPHICS (Extracted from Lottie JSON) ---
-  const FROG = '<g stroke="#2b1646" stroke-width="2">' +
-    '<circle cx="25" cy="20" r="12" fill="#76e5e0"/>' +
-    '<circle cx="64" cy="20" r="12" fill="#76e5e0"/>' +
-    '<circle cx="25" cy="20" r="5" fill="#2b1646"/>' +
-    '<circle cx="64" cy="20" r="5" fill="#2b1646"/>' +
-    '<ellipse cx="44.5" cy="60" rx="35" ry="28" fill="#39d5ce"/>' +
-    '<ellipse cx="44.5" cy="65" rx="20" ry="18" fill="#fff" fill-opacity="0.3"/>' +
-    '<path d="M30 65 Q44.5 78 59 65" fill="none" stroke="#2b1646" stroke-width="2.5" stroke-linecap="round"/>' +
-    '</g>';
-
-  function pond(on) {
-    const r = rng(42);
-    let out = '';
-    
-    // Ambient floating lights from your scene asset
-    out += '<circle cx="237" cy="175" r="140" fill="#76e5e0" fill-opacity=".15"/>' +
-           '<circle cx="237" cy="175" r="90" fill="#39d5ce" fill-opacity=".2"/>';
-
-    for (let i = 0; i < 6; i++) {
-      const bx = r() * 750 + 50, by = r() * 200 + 350, k = 0.5 + r() * 0.6, dur = 7 + r() * 5, sway = (r() - 0.5) * 60;
-      out += drift(bx, by, '<g transform="scale(' + k.toFixed(2) + ')">' + FROG + "</g>",
-        { dur: dur, delay: r() * dur, path: "0 0; " + sway.toFixed(0) + " " + (-120).toFixed(0) + "; 0 0" }, on);
-    }
-    return out;
-  }
-
-  // --- THEME REGISTRY CONFIGURATION ---
   const THEMES = {
-    pond:      { label: "Frog Pond", font: "system-ui, sans-serif", style: "normal", bg: ["#072227", "#1c6570"], t1: "#76e5e0", t2: "#ffffff", halo: "#021114", decor: pond },
-    halloween: { label: "Halloween ghosts", font: "Georgia,'Times New Roman',serif", style: "italic", bg: ["#1b1030", "#4a2275"], t1: "#f3dcff", t2: "#ff8a1f", halo: "#000", decor: ghosts },
-    fall:      { label: "Fall leaves", font: "'Palatino Linotype',Palatino,Georgia,serif", style: "normal", bg: ["#fff0d2", "#f2b97a"], t1: "#6b3410", t2: "#b3350f", halo: "#fff", decor: leaves },
-    winter:    { label: "Winter snow", font: "'Trebuchet MS',Verdana,sans-serif", style: "normal", bg: ["#0d2740", "#2a6aa3"], t1: "#d9eeff", t2: "#ffffff", halo: "#000", decor: snow }
+    halloween: { label: "Halloween Ghosts", font: "Georgia,'Times New Roman',serif", style: "italic", bg: ["#1b1030", "#4a2275"], t1: "#f3dcff", t2: "#ff8a1f", halo: "#000", decor: ghosts },
+    fall:      { label: "Fall Leaves", font: "'Palatino Linotype',Palatino,Georgia,serif", style: "normal", bg: ["#fff0d2", "#f2b97a"], t1: "#6b3410", t2: "#b3350f", halo: "#fff", decor: leaves },
+    winter:    { label: "Winter Snow", font: "'Trebuchet MS',Verdana,sans-serif", style: "normal", bg: ["#0d2740", "#2a6aa3"], t1: "#d9eeff", t2: "#ffffff", halo: "#000", decor: snow }
   };
 
-  // --- SVG BUILD ENGINE ---
   function build(key, text, place, on) {
     const t = THEMES[key];
     if (!t) return "";
@@ -130,23 +97,30 @@
       .map((s, k) => line(s, 250 - (small.length - 1 - k) * 62, 52, t.t1, "normal"))
       .join("");
 
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid slice">' +
+    return '<svg xmlns="http://www.w3.org/2000/svg" ' +
+  'viewBox="0 0 900 600" ' +
+  'preserveAspectRatio="xMidYMid slice">' +
+
       '<defs>' +
         '<linearGradient id="welcomeBg" x1="0" y1="0" x2="0" y2="1">' +
           '<stop offset="0%" stop-color="' + t.bg[0] + '"/>' +
           '<stop offset="100%" stop-color="' + t.bg[1] + '"/>' +
         '</linearGradient>' +
       '</defs>' +
-      '<rect x="-1000" y="-1000" width="2900" height="2600" fill="url(#welcomeBg)" fill-opacity="1"/>' +
+
+      // Background rect set to fill-opacity="0" to make it transparent
+      '<rect x="-1000" y="-1000" width="2900" height="2600" ' +
+        'fill="url(#welcomeBg)" fill-opacity="0"/>' +
+
       '<g>' +
         t.decor(on) +
         smallSvg +
         line(big, small.length ? 360 : 330, bigSize, t.t2, "bold") +
       '</g>' +
+
       '</svg>';
   }
 
-  // --- WINDOW GLOBAL OUTPUT EXPORTS ---
   window.WelcomeThemes = {
     list: Object.keys(THEMES).reduce((o, k) => { o[k] = THEMES[k].label; return o; }, {}),
     build: build,
