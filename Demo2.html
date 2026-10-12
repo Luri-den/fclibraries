@@ -12,9 +12,10 @@ html,body{margin:0;height:100%;font-family:Arial,sans-serif}
 html.settings-loading #bar,
 html.settings-loading #tools { visibility: hidden; }
 
-#bar{position:absolute;z-index:5;top:0;left:0;right:0;background:var(--bar,#E47303);color:#fff;padding:calc(6px + env(safe-area-inset-top)) 10px 8px;display:flex;flex-direction:column;gap:6px}
-.bar-top{display:flex;justify-content:space-between;align-items:center}
-#bar h1{font-size:17px;margin:0}
+#bar{position:absolute;z-index:5;top:0;left:0;right:0;background:none;color:#fff;padding:calc(8px + env(safe-area-inset-top)) 10px 0;box-sizing:border-box;display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px;pointer-events:none}
+#bar > *, #tools > *{pointer-events:auto}
+.bar-top{display:contents}
+#bar h1{display:none;font-size:15px;margin:0}  /* title hidden on the map; the welcome screen still shows it */
 
 #passportBtn{background:#fff;color:var(--bar,#E47303);border:0;border-radius:20px;padding:5px 12px;font-weight:bold;font-size:13px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
 #passportBtn:hover{background:#fff8f0}
@@ -511,27 +512,117 @@ html.settings-loading #tools { visibility: hidden; }
   position:absolute;top:6px;right:12px;font-size:32px;
   border:0;background:none;cursor:pointer;color:#999;
 }
-/* category chips: plain name + colored dot, one scrolling row */
-#catChipsWrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-#catChips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:nowrap;gap:4px}
-#catChips li{flex:0 0 auto}
-#catChips button{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border:0;background:none;color:#fff;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
-#catChips .swatch{width:10px;height:10px;border-radius:50%;background:var(--sw);box-shadow:0 0 0 1.5px #fff;display:inline-block}
-#catChips button[aria-pressed="false"]{opacity:.45}
-#catChips .reset{text-decoration:underline}
 
-@media (max-width:699px){
-  #bar{flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px 6px}
-  .bar-top{order:1;flex:1 1 100%}
-  #q{order:2;flex:1 1 0;min-width:0;width:auto}
-  #tools{display:contents}
-  #tools > *{order:3}               /* every tools button defaults to the search row */
-  #res{order:4;flex:1 1 100%}
-  #tours,#stories{order:5}          /* the two script-added buttons go on their own row */
-  #catChipsWrap{order:6;flex:1 1 100%}
-  #toolsMore{order:7}               /* opened More panel goes last */
+/* ===== Floating search layout ===== */
+
+#q{
+  order:10;
+  flex:1 1 260px;
+  min-width:0;
+  width:auto;
+  padding:8px 16px;
+  border:2px solid var(--bar,#E47303);
+  border-radius:999px;
+  background:#fff;color:#000;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+  -webkit-appearance:none;appearance:none;
 }
-  
+
+#near      { order:20; }
+#eventBtn  { order:21; }
+#moreBtn   { order:22; }
+#passportBtn{ order:40; flex:0 0 auto; border:2px solid var(--bar,#E47303); padding:4px 12px; }
+
+#catChipsWrap{
+  order:30;
+  flex:0 1 auto;
+  min-width:0;
+  max-width:100%;
+}
+#catChips{
+  list-style:none;margin:0;padding:0;
+  display:flex;flex-wrap:nowrap;gap:6px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+#catChips::-webkit-scrollbar{display:none}
+#catChips li{flex:0 0 auto}
+#catChips button{
+  pointer-events:auto;
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 11px;border:0;border-radius:999px;
+  background:#fff;color:#222;font:inherit;font-size:13px;font-weight:600;
+  white-space:nowrap;cursor:pointer;
+  box-shadow:0 1px 4px rgba(0,0,0,.35);
+}
+#catChips .swatch{
+  display:inline-block;width:10px;height:10px;border-radius:50%;
+  background:var(--sw,#E47303);
+  box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px rgba(0,0,0,.25);
+}
+#catChips button[aria-pressed="false"]{opacity:.55}
+#catChips .reset{background:var(--bar,#E47303);color:#fff}
+
+#res{
+  order:45;
+  flex:1 1 100%;
+  margin:0;
+  border-radius:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+
+/* --- Desktop: everything inline, More folds away --- */
+@media (min-width:721px){
+  #tools{display:contents}
+  #moreBtn{display:none!important}
+  #toolsMore{display:contents!important}
+  #tour      { order:23; }
+  #tours     { order:24; }
+  #stories   { order:25; }
+  #aerialBtn { order:22; }
+  #yearBox   { order:60; flex:0 0 auto; }
+  #ovw       { order:61; flex:0 0 auto; }
+  #yearBox,#ovw{
+    background:var(--bar,#E47303);
+    color:#fff;
+    padding:6px 12px;
+    border-radius:14px;
+    box-shadow:0 1px 4px rgba(0,0,0,.35);
+  }
+  #passportBtn{margin-left:auto}
+  #tools button{
+    padding:7px 13px;
+    border-radius:999px;
+    font-weight:600;
+    box-shadow:0 1px 4px rgba(0,0,0,.35);
+  }
+}
+
+/* --- Mobile: search on its own row; Near Me · About · More · Passport on the next --- */
+@media (max-width:720px){
+  #q{flex:1 1 100%}
+  #near      { order:20; }
+  #eventBtn  { order:21; }
+  #moreBtn   { order:22; display:inline-block!important; }
+  #passportBtn{ order:40; margin-left:auto; }
+  #tools{display:contents}
+  #toolsMore{display:none!important}
+  #tools.open #toolsMore{
+    display:flex!important;
+    order:50;
+    flex:1 1 100%;
+    flex-wrap:wrap;
+    gap:8px;
+    background:var(--bar,#E47303);
+    padding:10px;
+    border-radius:16px;
+    box-shadow:0 2px 8px rgba(0,0,0,.35);
+    box-sizing:border-box;
+  }
+  #catChipsWrap{flex:1 1 100%}
+  #catChips{flex-wrap:wrap;overflow-x:visible}
+}
+
 </style>
 </head>
 
@@ -580,15 +671,17 @@ html.settings-loading #tools { visibility: hidden; }
   </div>
   <input id="q" type="search" placeholder="Search places..." aria-label="Search places">
   <ul id="res" hidden></ul>
-  <div id="catChipsWrap" hidden>
-    <ul id="catChips" aria-label="Filter by category"></ul>
-  </div>
   <div id="tools">
     <button id="near" type="button">Near Me</button>
-    <button id="tour" type="button" hidden>Take the Tour</button>
     <button id="eventBtn" type="button" hidden>About</button>
     <button id="moreBtn" type="button" aria-expanded="false" aria-controls="toolsMore" hidden>More &#9662;</button>
     <div id="toolsMore">
+      <button id="tour" type="button" hidden>Take the Tour</button>
+      <button id="tours" type="button" hidden>Tours</button>
+      <button id="stories" type="button" aria-pressed="false">Show All Stories and Spots</button>
+      <div id="catChipsWrap" hidden>
+        <ul id="catChips" aria-label="Filter by category"></ul>
+      </div>
       <button id="aerialBtn" type="button" aria-pressed="false">Aerial</button>
       <label id="yearBox"><span>Year: <b id="yv">All</b></span><span class="strack"><input id="yr" type="range" aria-label="Show sites that existed in this year"><span id="yticks" aria-hidden="true"></span></span></label>
       <label id="ovw" hidden>Old Maps <select id="ovs"></select> <input id="ov" type="range" min="0" max="100" value="0" aria-label="Old map opacity"></label>
@@ -1928,10 +2021,6 @@ $("res").onclick = e => {
       `<span>${icon("story","#D55E00")} Story</span>` +
     `</div>`);
 
-  $("tour").insertAdjacentHTML("afterend",
-    `<button id="tours" type="button" hidden>Tours</button>` +
-    `<button id="stories" type="button" aria-pressed="false">Show All Stories and Spots</button>`);
-
   $("tours").onclick = listTours;
 
   $("stories").onclick = () => {
@@ -2965,15 +3054,16 @@ function buildChips(){
   });
 
   const codes = Object.keys(SITE.catNames).filter(c => counts[c]);
-  if (!codes.length){ wrap.hidden = true; return; }
+  if (!codes.length){ wrap.hidden = true; if (typeof syncMoreBtn === "function") syncMoreBtn(); return; }
   wrap.hidden = false;
+  if (typeof syncMoreBtn === "function") syncMoreBtn();
 
   ul.innerHTML = codes.map(code => {
     const on = catVisible(code);
     const color = (SITE.colors && SITE.colors[code]) || "#E47303";
     return `<li><button type="button" data-cat="${code}" aria-pressed="${on}">
       <span class="swatch" style="--sw:${color};background:${color}"></span>
-      ${SITE.catNames[code]} <small style="opacity:.7">${counts[code]}</small>
+      ${esc(SITE.catNames[code] || code)}
     </button></li>`;
   }).join("") +
   (hiddenCats.size ? `<li><button type="button" class="reset" id="catReset">Reset</button></li>` : "");
