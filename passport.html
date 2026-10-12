@@ -6,6 +6,7 @@
 <title>Connersville — Passport Editor</title>
 <script src="workspace.js"></script>
 <script>Workspace.install();</script>
+<script src="marker-fill.js"></script>
 <style>
   :root{
     --line:#d7dde5; --accent:#2b6cb0; --ink:#1a202c;
@@ -286,9 +287,18 @@ async function fetchText(file){
 const csvRows = text => Papa.parse(text, { header:true, skipEmptyLines:"greedy" }).data
   .filter(r => Object.values(r).some(v => String(v||"").trim() !== ""));
 
+window.MarkerFill = window.MarkerFill || {   // stand-in so the editor still works if marker-fill.js was not uploaded
+  PATTERNS: [], cleanPattern: () => "", defaults: () => ({}), url: () => "", fromRow: () => null, normalize: c => c, tileHtml: () => "", panelHtml: () => "", wire(){}
+};
+const CAT_KNOWN = ["CODE","LABEL","COLOR","ICON","RANKED","FILL","FILL_COLOR","FILL_COLOR2"];
+let catExtraCols = [];
+const catImage = c => (c && c.fill) ? MarkerFill.url(c.fill, c.fillColor, c.fillColor2) : iconUrl((c && c.icon) || "generic");
 let catsLoaded = false;
 function ingestCats(text){
-  const hasRanked = (Papa.parse(text, { header:true, skipEmptyLines:"greedy" }).meta.fields || []).includes("RANKED");
+  const fields = (Papa.parse(text, { header:true, skipEmptyLines:"greedy" }).meta.fields || []).map(f => String(f).trim());
+  const hasRanked = fields.includes("RANKED");
+  catExtraCols = fields.filter(f => f && !CAT_KNOWN.includes(f));   // columns this editor does not manage (for example SHAPE) are kept as they are, so saving never drops them
+
   const next = {};
   csvRows(text).forEach(r => {
     const code = String(r.CODE||"").trim().toUpperCase();
@@ -300,7 +310,9 @@ function ingestCats(text){
       label: String(r.LABEL||"").trim() || code,
       color,
       icon: ICONS[icon] ? icon : ((old && old.icon) || "generic"),
-      ranked: hasRanked ? isYes(r.RANKED) : !!(old && old.ranked)
+      ranked: hasRanked ? isYes(r.RANKED) : !!(old && old.ranked),
+      ...(MarkerFill.fromRow(r, color) || (old && old.fill ? { fill: old.fill, fillColor: old.fillColor, fillColor2: old.fillColor2 } : { fill: "" })),
+      extra: Object.fromEntries(catExtraCols.map(k => [k, String(r[k] == null ? "" : r[k])]))
     };
   });
   if (Object.keys(next).length){ CATEGORIES = next; catsLoaded = true; }
@@ -454,7 +466,7 @@ function renderList(){
       row.className = "row" + (selected && selected.kind === "category" && selected.ref === code ? " sel" : "");
       row.innerHTML =
         `<span class="dot" style="background:${esc(c.color)}"></span>` +
-        `<img class="cicon" src="${iconUrl(c.icon)}" alt="">` +
+        `<img class="cicon" src="${catImage(c)}" alt="" style="${c.fill ? "border-radius:4px;object-fit:cover" : ""}">` +
         `<span class="name">${esc(c.label)} <span class="cnt">${esc(code)}</span></span>` +
         `<span class="badge ${c.ranked ? "on" : "off"}">${c.ranked ? "ranked" : "not ranked"}</span>`;
       row.onclick = () => { selected = { kind:"category", ref:code }; render(); };
@@ -1087,8 +1099,9 @@ function renderCategoryForm(box, code){
         <label>Icon (shown when a place has no photo)</label>
         <div class="icongrid" id="c-icons">
           ${Object.entries(ICONS).map(([k, i]) =>
-            `<button type="button" class="ic ${k === c.icon ? "on" : ""}" data-icon="${k}" title="${esc(i.label)}"><img src="${iconUrl(k)}" alt="${esc(i.label)}"></button>`).join("")}
+            `<button type="button" class="ic ${!c.fill && k === c.icon ? "on" : ""}" data-icon="${k}" title="${esc(i.label)}"><img src="${iconUrl(k)}" alt="${esc(i.label)}"></button>`).join("")}${MarkerFill.tileHtml(c)}
         </div>
+        ${MarkerFill.panelHtml(c)}
       </div>
 
       <div class="actions">
@@ -1106,11 +1119,13 @@ function renderCategoryForm(box, code){
     box.querySelector("#c-rankNote").textContent = c.ranked ? "Ranks that belong to this category are shown to visitors." : "Places and tasks still work, but no stars or ranks come from this category. You can turn this on later without rebuilding anything.";
     renderList();
   };
-  box.querySelectorAll("#c-icons .ic").forEach(b => b.onclick = () => {
+  box.querySelectorAll("#c-icons .ic[data-icon]").forEach(b => b.onclick = () => {
     c.icon = b.dataset.icon;
+    c.fill = "";
     box.querySelectorAll("#c-icons .ic").forEach(x => x.classList.toggle("on", x === b));
     renderList();
   });
+  MarkerFill.wire(box, c, renderList);
   box.querySelector("#c-del").onclick = () => {
     const bits = [];
     if (u.items) bits.push(u.items + " place(s) on the map use it");
@@ -1191,8 +1206,8 @@ $("publishBtn").onclick = () => {
   const stampsCSV = Papa.unparse({ fields: headers.stamp, data: stampRows });
   const tasksCSV  = Papa.unparse({ fields: headers.task,  data: taskRows  });
 
-  const catRows = Object.entries(CATEGORIES).map(([CODE, c]) => ({ CODE, LABEL:c.label, COLOR:c.color, ICON:c.icon, RANKED:c.ranked ? "yes" : "no" }));
-  const catsCSV = Papa.unparse({ fields:["CODE","LABEL","COLOR","ICON","RANKED"], data:catRows });
+  const catRows = Object.entries(CATEGORIES).map(([CODE, c]) => Object.assign({}, c.extra || {}, { CODE, LABEL:c.label, COLOR:c.color, ICON:c.icon, RANKED:c.ranked ? "yes" : "no", FILL:c.fill || "", FILL_COLOR:c.fill ? c.fillColor : "", FILL_COLOR2:c.fill ? c.fillColor2 : "" }));
+  const catsCSV = Papa.unparse({ fields:["CODE","LABEL","COLOR","ICON","RANKED","FILL","FILL_COLOR","FILL_COLOR2"].concat(catExtraCols), data:catRows });
 
   download("stamps.csv", stampsCSV);
   setTimeout(() => download("tasks.csv", tasksCSV), 150);
