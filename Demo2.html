@@ -447,6 +447,29 @@ html.settings-loading #tools { visibility: hidden; }
   #panel.snap-closed{transform:translateY(100%)}
 }
 
+#wipe{
+  position:fixed;top:0;bottom:0;width:44px;
+  margin-left:-22px;
+  z-index:6;                    /* was 4 — now above the map, below the toolbar */
+  cursor:ew-resize;touch-action:none;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:auto;
+}
+#wipe::before{
+  content:"";position:absolute;top:0;bottom:0;left:50%;
+  width:2px;background:#fff;box-shadow:0 0 0 1px #0006;
+  margin-left:-1px;
+}
+#wipe .knob{
+  width:44px;height:44px;border-radius:50%;
+  background:#fff;border:2px solid #333;
+  box-shadow:0 2px 6px #0006;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;color:#333;user-select:none;
+  pointer-events:none;          /* the whole #wipe is the hit target, not just the knob */
+}
+#wipe[hidden]{display:none}
+  
 /* ============================================================
    CATEGORY CHIPS
    ============================================================ */
@@ -479,38 +502,208 @@ html.settings-loading #tools { visibility: hidden; }
 #catChipsWrap[hidden]{display:none}
 
 /* ============================================================
-    THEN-AND-NOW WIPE
+   CHUNK 3 — THEN-AND-NOW WIPE (real hard split)
+   The overlay image is drawn into its own <img> over the map,
+   clipped by the wipe handle. MapLibre never touches it, so
+   dragging is smooth and the split is exact.
    ============================================================ */
-#wipe{
-  position:absolute;top:0;bottom:0;width:44px;
-  margin-left:-22px;
-  z-index:4;cursor:ew-resize;touch-action:none;
-  display:flex;align-items:center;justify-content:center;
-  pointer-events:auto;
-}
-#wipe::before{
-  content:"";position:absolute;top:0;bottom:0;left:50%;
-  width:2px;background:#fff;box-shadow:0 0 0 1px #0006;
-  margin-left:-1px;
-}
-#wipe .knob{
-  width:34px;height:34px;border-radius:50%;
-  background:#fff;border:2px solid #333;
-  box-shadow:0 2px 6px #0006;
-  display:flex;align-items:center;justify-content:center;
-  font-size:16px;color:#333;user-select:none;
-}
-#wipe[hidden]{display:none}
-#wipeHint{
-  position:absolute;left:50%;bottom:80px;transform:translateX(-50%);
-  background:#000b;color:#fff;padding:6px 12px;border-radius:16px;
-  font-size:12px;z-index:5;pointer-events:none;
-  animation:wipeHint 3.5s ease-in-out forwards;
-}
-@keyframes wipeHint{
-  0%{opacity:0}15%{opacity:1}80%{opacity:1}100%{opacity:0}
-}
+(function(){
+  let wipeEl = null, overlayImg = null, stageEl = null;
+  let dragging = false;
+  let splitX = 0.5;                 // 0 = all modern, 1 = all old
+  let currentOverlayIdx = -1;
 
+  function ensureStage(){
+    if (stageEl) return stageEl;
+    const stage = document.createElement("div");
+    stage.id = "wipeStage";
+    // Absolutely-positioned overlay for the old map. Sits above MapLibre's canvas
+    // but below the toolbar, and it's pointer-events:none so map gestures still work
+    // outside the handle.
+    stage.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:3";
+    stage.innerHTML = `<img id="wipeImg" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;transform-origin:0 0;will-change:clip-path">`;
+    document.body.appendChild(stage);
+    overlayImg = stage.querySelector("#wipeImg");
+    return stage;
+  }
+
+  function ensureHandle(){
+    if (wipeEl) return wipeEl;
+    wipeEl = document.createElement("div");
+    wipeEl.id = "wipe";
+    wipeEl.hidden = true;
+    wipeEl.innerHTML = `<div class="knob" aria-hidden="true">⇆</div>`;
+    document.body.appendChild(wipeEl);
+    return wipeEl;
+  }
+
+  // Project the image's lat/lng corners to screen pixels and crop the overlay
+  // to the map canvas area. This makes the raster line up with the OSM tiles
+  // regardless of pan/zoom, because we re-project on every frame.
+  function placeOverlay(){
+    if (!overlayImg) return;
+    const ovs = (window.SITE && SITE.overlays) || [];
+    const ov = ovs[currentOverlayIdx];
+    if (!ov || !window.map) return;
+
+    const map = window.map;
+    const canvas = map.getCanvas();
+    const rect = canvas.getBoundingClientRect();
+
+    // MapLibre has an internal helper we don't have access to; do it manually.
+    const c = ov.coords;               // [[W,N],[E,N],[E,S],[W,S]]
+    // project() takes [lng,lat] and returns {x,y} in canvas px
+    const p1 = map.project([c[0][0], c[0][1]]);   // NW
+    const p2 = map.project([c[1][0], c[1][1]]);   // NE
+    const p3 = map.project([c[2][0], c[2][1]]);   // SE
+    const p4 = map.project([c[3][0], c[3][1]]);   // SW
+
+    // Web-Mercator north-up: NW is top-left, SE is bottom-right on screen.
+    // If the user rotates the map, this projection breaks; the wipe is disabled
+    // in that case (see below). For a north-up raster, p1/p3 bound the rect.
+    const left   = Math.min(p1.x, p2.x, p3.x, p4.x);
+    const right  = Math.max(p1.x, p2.x, p3.x, p4.x);
+    const top    = Math.min(p1.y, p2.y, p3.y, p4.y);
+    const bottom = Math.max(p1.y, p2.y, p3.y, p4.y);
+
+    const scaleX = (right - left) / window.innerWidth;
+    const scaleY = (bottom - top) / window.innerHeight;
+
+    // Position the img absolutely over the canvas
+    overlayImg.style.position = "absolute";
+    overlayImg.style.left   = rect.left + "px";
+    overlayImg.style.top    = rect.top  + "px";
+    overlayImg.style.width  = (right - left) + "px";
+    overlayImg.style.height = (bottom - top) + "px";
+
+    // Use clip-path to reveal only left of splitX (a fraction of the viewport)
+    const splitPx = Math.round(window.innerWidth * splitX);
+    overlayImg.style.clipPath = `inset(0 ${window.innerWidth - splitPx}px 0 0)`;
+  }
+
+  function updateHandle(){
+    if (!wipeEl) return;
+    const splitPx = Math.round(window.innerWidth * splitX);
+    wipeEl.style.left = splitPx + "px";
+  }
+
+  function findActiveOverlay(){
+    const ovs = (window.SITE && SITE.overlays) || [];
+    const ovsSel = $id("ovs");
+    const idx = ovsSel ? +ovsSel.value : 0;
+    return { ovs, idx };
+  }
+
+  function updateWipe(){
+    const stage = ensureStage();
+    const w = ensureHandle();
+    if (!window.map) { w.hidden = true; stage.style.display = "none"; return; }
+
+    const ovs = (window.SITE && SITE.overlays) || [];
+    const ov = $id("ov");
+    const ovw = $id("ovw");
+    if (!ov || !ovw || ovw.hidden || !ovs.length) {
+      w.hidden = true; stage.style.display = "none"; return;
+    }
+
+    const active = +ov.value > 0;
+    if (!active) { w.hidden = true; stage.style.display = "none"; return; }
+
+    w.hidden = false;
+    stage.style.display = "";
+
+    const { idx } = findActiveOverlay();
+    if (idx !== currentOverlayIdx) {
+      currentOverlayIdx = idx;
+      const o = ovs[idx];
+      if (o && o.url) overlayImg.src = window.assetUrl ? assetUrl(o.url) : o.url;
+    }
+
+    // Force the MapLibre overlay layer to 0 — we're drawing our own now
+    try { ovs.forEach((_, n) => map.setPaintProperty("ov" + n, "raster-opacity", 0)); } catch(e){}
+
+    placeOverlay();
+    updateHandle();
+  }
+
+  function moveSplit(clientX){
+    splitX = Math.max(0.02, Math.min(0.98, clientX / window.innerWidth));
+    placeOverlay();
+    updateHandle();
+  }
+
+  function onDown(e){
+    dragging = true;
+    e.preventDefault();
+    e.stopPropagation();
+    moveSplit(e.touches ? e.touches[0].clientX : e.clientX);
+  }
+  function onMove(e){
+    if (!dragging) return;
+    e.preventDefault();
+    moveSplit(e.touches ? e.touches[0].clientX : e.clientX);
+  }
+  function onUp(){ dragging = false; }
+
+  // Wire after the map is ready
+  let attempts = 0;
+  const boot = setInterval(() => {
+    if (!window.map || !window.map.isStyleLoaded || !window.map.isStyleLoaded()) {
+      if (++attempts > 40) clearInterval(boot);
+      return;
+    }
+    clearInterval(boot);
+
+    const w = ensureHandle();
+    w.addEventListener("pointerdown", onDown);
+    w.addEventListener("touchstart", onDown, { passive:false });
+    document.addEventListener("pointermove", onMove, { passive:false });
+    document.addEventListener("pointerup", onUp);
+    document.addEventListener("pointercancel", onUp);
+    document.addEventListener("touchmove", onMove, { passive:false });
+    document.addEventListener("touchend", onUp);
+
+    // Keep the overlay in step with pan/zoom
+    window.map.on("move", placeOverlay);
+    window.map.on("zoom", placeOverlay);
+    window.map.on("resize", () => { placeOverlay(); updateHandle(); });
+
+    // Watch the slider for state changes
+    const ov = $id("ov");
+    if (ov) ov.addEventListener("input", () => setTimeout(updateWipe, 30));
+    const ovs2 = $id("ovs");
+    if (ovs2) ovs2.addEventListener("change", () => { currentOverlayIdx = -1; updateWipe(); });
+
+    // One-time hint
+    if (!sessionStorage.getItem("wipeHintShown")) {
+      sessionStorage.setItem("wipeHintShown", "1");
+      setTimeout(() => {
+        if (!w.hidden) {
+          const hint = document.createElement("div");
+          hint.id = "wipeHint";
+          hint.textContent = "Drag the handle to compare old and new";
+          document.body.appendChild(hint);
+          setTimeout(() => hint.remove(), 4000);
+        }
+      }, 1200);
+    }
+
+    updateWipe();
+  }, 250);
+
+  // If the user rotates the map, tell them the wipe can't line up.
+  // (Simpler than re-deriving the skew matrix, and honest.)
+  if (window.map) {
+    window.map.on("rotate", () => {
+      if (wipeEl && !wipeEl.hidden) {
+        if (!wipeEl._rotateWarned) {
+          wipeEl._rotateWarned = true;
+          toast && toast("Reset the compass to use the wipe — it only works north-up.");
+        }
+      }
+    });
+  }
+})();
 /* ============================================================
     SHARE BUTTON & TOAST
    ============================================================ */
