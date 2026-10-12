@@ -501,167 +501,7 @@ html.settings-loading #tools { visibility: hidden; }
 }
 #catChipsWrap[hidden]{display:none}
 
-/* ============================================================
-   CHUNK 3 — THEN-AND-NOW WIPE (real hard split)
-   The overlay image is drawn into its own <img> over the map,
-   clipped by the wipe handle. MapLibre never touches it, so
-   dragging is smooth and the split is exact.
-   ============================================================ */
-(function(){
-  let wipeEl = null, overlayImg = null, stageEl = null;
-  let dragging = false;
-  let splitX = 0.5;
-  let currentOverlayIdx = -1;
 
-  function ensureStage(){
-    if (stageEl) return stageEl;
-    const stage = document.createElement("div");
-    stage.id = "wipeStage";
-    stage.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:3";
-    stage.innerHTML = `<img id="wipeImg" alt="" style="position:absolute;transform-origin:0 0;will-change:clip-path;image-rendering:auto">`;
-    document.body.appendChild(stage);
-    overlayImg = stage.querySelector("#wipeImg");
-    return stage;
-  }
-
-  function ensureHandle(){
-    if (wipeEl) return wipeEl;
-    wipeEl = document.createElement("div");
-    wipeEl.id = "wipe";
-    wipeEl.hidden = true;
-    wipeEl.innerHTML = `<div class="knob" aria-hidden="true">⇆</div>`;
-    document.body.appendChild(wipeEl);
-    return wipeEl;
-  }
-
-  function placeOverlay(){
-    if (!overlayImg || overlayImg.hidden) return;
-    const ovs = (window.SITE && SITE.overlays) || [];
-    const ov = ovs[currentOverlayIdx];
-    if (!ov || !window.map) return;
-
-    const map = window.map;
-    const canvas = map.getCanvas();
-    const rect = canvas.getBoundingClientRect();
-
-    const c = ov.coords;
-    const p1 = map.project([c[0][0], c[0][1]]);
-    const p2 = map.project([c[1][0], c[1][1]]);
-    const p3 = map.project([c[2][0], c[2][1]]);
-    const p4 = map.project([c[3][0], c[3][1]]);
-
-    const left   = Math.min(p1.x, p2.x, p3.x, p4.x);
-    const right  = Math.max(p1.x, p2.x, p3.x, p4.x);
-    const top    = Math.min(p1.y, p2.y, p3.y, p4.y);
-    const bottom = Math.max(p1.y, p2.y, p3.y, p4.y);
-
-    overlayImg.style.left   = (rect.left + left) + "px";
-    overlayImg.style.top    = (rect.top + top) + "px";
-    overlayImg.style.width  = (right - left) + "px";
-    overlayImg.style.height = (bottom - top) + "px";
-
-    const splitPx = Math.round(window.innerWidth * splitX);
-    overlayImg.style.clipPath = `inset(0 ${window.innerWidth - splitPx}px 0 0)`;
-  }
-
-  function updateHandle(){
-    if (!wipeEl) return;
-    wipeEl.style.left = Math.round(window.innerWidth * splitX) + "px";
-  }
-
-  function updateWipe(){
-    const stage = ensureStage();
-    const w = ensureHandle();
-    if (!window.map) { w.hidden = true; stage.style.display = "none"; return; }
-
-    const ovs = (window.SITE && SITE.overlays) || [];
-    const ov = $("ov");
-    const ovw = $("ovw");
-    if (!ov || !ovw || ovw.hidden || !ovs.length) {
-      w.hidden = true; stage.style.display = "none"; return;
-    }
-
-    const active = +ov.value > 0;
-    if (!active) { w.hidden = true; stage.style.display = "none"; return; }
-
-    w.hidden = false;
-    stage.style.display = "";
-
-    const ovsSel = $("ovs");
-    const idx = ovsSel ? +ovsSel.value : 0;
-    if (idx !== currentOverlayIdx) {
-      currentOverlayIdx = idx;
-      const o = ovs[idx];
-      if (o && o.url) overlayImg.src = window.assetUrl ? assetUrl(o.url) : o.url;
-    }
-
-    try { ovs.forEach((_, n) => map.setPaintProperty("ov" + n, "raster-opacity", 0)); } catch(e){}
-
-    placeOverlay();
-    updateHandle();
-  }
-
-  function moveSplit(clientX){
-    splitX = Math.max(0.02, Math.min(0.98, clientX / window.innerWidth));
-    placeOverlay();
-    updateHandle();
-  }
-
-  function onDown(e){ dragging = true; e.preventDefault(); e.stopPropagation(); moveSplit(e.touches ? e.touches[0].clientX : e.clientX); }
-  function onMove(e){ if (!dragging) return; e.preventDefault(); moveSplit(e.touches ? e.touches[0].clientX : e.clientX); }
-  function onUp(){ dragging = false; }
-
-  let attempts = 0;
-  const boot = setInterval(() => {
-    if (!window.map || !window.map.isStyleLoaded || !window.map.isStyleLoaded()) {
-      if (++attempts > 40) clearInterval(boot);
-      return;
-    }
-    clearInterval(boot);
-
-    const w = ensureHandle();
-    w.addEventListener("pointerdown", onDown);
-    w.addEventListener("touchstart", onDown, { passive:false });
-    document.addEventListener("pointermove", onMove, { passive:false });
-    document.addEventListener("pointerup", onUp);
-    document.addEventListener("pointercancel", onUp);
-    document.addEventListener("touchmove", onMove, { passive:false });
-    document.addEventListener("touchend", onUp);
-
-    window.map.on("move", placeOverlay);
-    window.map.on("zoom", placeOverlay);
-    window.map.on("resize", () => { placeOverlay(); updateHandle(); });
-
-    const ov = $("ov");
-    if (ov) ov.addEventListener("input", () => setTimeout(updateWipe, 30));
-    const ovsSel = $("ovs");
-    if (ovsSel) ovsSel.addEventListener("change", () => { currentOverlayIdx = -1; updateWipe(); });
-
-    if (!sessionStorage.getItem("wipeHintShown")) {
-      sessionStorage.setItem("wipeHintShown", "1");
-      setTimeout(() => {
-        if (!w.hidden) {
-          const hint = document.createElement("div");
-          hint.id = "wipeHint";
-          hint.textContent = "Drag the handle to compare old and new";
-          document.body.appendChild(hint);
-          setTimeout(() => hint.remove(), 4000);
-        }
-      }, 1200);
-    }
-
-    updateWipe();
-  }, 250);
-
-  if (window.map) {
-    window.map.on("rotate", () => {
-      if (wipeEl && !wipeEl.hidden && !wipeEl._rotateWarned) {
-        wipeEl._rotateWarned = true;
-        toast("Reset the compass to use the wipe — it only works north-up.");
-      }
-    });
-  }
-})();
 /* ============================================================
     SHARE BUTTON & TOAST
    ============================================================ */
@@ -714,29 +554,6 @@ html.settings-loading #tools { visibility: hidden; }
 .p-prize .meta{font-size:12px;color:#555}
 .p-prize.done .meta{color:#2e6e3a;font-weight:600}
 
-/* Wipe: the handle sits above the toolbar's z-index so it's fully reachable */
-#wipe{
-  position:fixed;top:0;bottom:0;width:44px;
-  margin-left:-22px;
-  z-index:6;
-  cursor:ew-resize;touch-action:none;
-  display:flex;align-items:center;justify-content:center;
-  pointer-events:auto;
-}
-#wipe::before{
-  content:"";position:absolute;top:0;bottom:0;left:50%;
-  width:2px;background:#fff;box-shadow:0 0 0 1px #0006;
-  margin-left:-1px;
-}
-#wipe .knob{
-  width:44px;height:44px;border-radius:50%;
-  background:#fff;border:2px solid #333;
-  box-shadow:0 2px 6px #0006;
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;color:#333;user-select:none;
-  pointer-events:none;
-}
-#wipe[hidden]{display:none}
 #wipeHint{
   position:fixed;left:50%;bottom:100px;transform:translateX(-50%);
   background:#000b;color:#fff;padding:8px 14px;border-radius:16px;
@@ -3724,14 +3541,29 @@ setTimeout(() => {
 }, 3000);
 
 /* ============================================================
-   CHUNK 3 — THEN-AND-NOW WIPE
+   CHUNK 3 — THEN-AND-NOW WIPE (real hard split)
+   The overlay image is drawn into its own <img> over the map,
+   clipped by the wipe handle. MapLibre never touches it, so
+   dragging is smooth and the split is exact.
    ============================================================ */
-// We use a wipe only when there's exactly one overlay and its opacity slider is set above 0
-// (so the existing opacity UI still works for multi-overlay sites).
 (function(){
-  let wipeEl = null;
+  let wipeEl = null, overlayImg = null, stageEl = null;
+  let dragging = false;
+  let splitX = 0.5;
+  let currentOverlayIdx = -1;
 
-  function ensureWipe(){
+  function ensureStage(){
+    if (stageEl) return stageEl;
+    const stage = document.createElement("div");
+    stage.id = "wipeStage";
+    stage.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:3";
+    stage.innerHTML = `<img id="wipeImg" alt="" style="position:absolute;transform-origin:0 0;will-change:clip-path;image-rendering:auto">`;
+    document.body.appendChild(stage);
+    overlayImg = stage.querySelector("#wipeImg");
+    return stage;
+  }
+
+  function ensureHandle(){
     if (wipeEl) return wipeEl;
     wipeEl = document.createElement("div");
     wipeEl.id = "wipe";
@@ -3741,109 +3573,133 @@ setTimeout(() => {
     return wipeEl;
   }
 
-  function updateWipe(){
-    const map = window.map;
-    const w = ensureWipe();
-    if (!map || !w) return;
-
-    // Only for single-overlay case, and only when slider is engaged
+  function placeOverlay(){
+    if (!overlayImg || overlayImg.hidden) return;
     const ovs = (window.SITE && SITE.overlays) || [];
-    const ov = $id("ov");
-    const ovw = $id("ovw");
-    if (!ov || !ovw || ovw.hidden || ovs.length !== 1){
-      w.hidden = true;
+    const ov = ovs[currentOverlayIdx];
+    if (!ov || !window.map) return;
+
+    const map = window.map;
+    const canvas = map.getCanvas();
+    const rect = canvas.getBoundingClientRect();
+
+    const c = ov.coords;
+    const p1 = map.project([c[0][0], c[0][1]]);
+    const p2 = map.project([c[1][0], c[1][1]]);
+    const p3 = map.project([c[2][0], c[2][1]]);
+    const p4 = map.project([c[3][0], c[3][1]]);
+
+    const left   = Math.min(p1.x, p2.x, p3.x, p4.x);
+    const right  = Math.max(p1.x, p2.x, p3.x, p4.x);
+    const top    = Math.min(p1.y, p2.y, p3.y, p4.y);
+    const bottom = Math.max(p1.y, p2.y, p3.y, p4.y);
+
+    overlayImg.style.left   = (rect.left + left) + "px";
+    overlayImg.style.top    = (rect.top + top) + "px";
+    overlayImg.style.width  = (right - left) + "px";
+    overlayImg.style.height = (bottom - top) + "px";
+
+    const splitPx = Math.round(window.innerWidth * splitX);
+    overlayImg.style.clipPath = `inset(0 ${window.innerWidth - splitPx}px 0 0)`;
+  }
+
+  function updateHandle(){
+    if (!wipeEl) return;
+    wipeEl.style.left = Math.round(window.innerWidth * splitX) + "px";
+  }
+
+  function updateWipe(){
+    const stage = ensureStage();
+    const w = ensureHandle();
+    if (!window.map) { w.hidden = true; stage.style.display = "none"; return; }
+
+    const ovs = (window.SITE && SITE.overlays) || [];
+    const ov = $("ov");
+    const ovw = $("ovw");
+    if (!ov || !ovw || ovw.hidden || !ovs.length) {
+      w.hidden = true; stage.style.display = "none"; return;
+    }
+
+    const active = +ov.value > 0;
+    if (!active) { w.hidden = true; stage.style.display = "none"; return; }
+
+    w.hidden = false;
+    stage.style.display = "";
+
+    const ovsSel = $("ovs");
+    const idx = ovsSel ? +ovsSel.value : 0;
+    if (idx !== currentOverlayIdx) {
+      currentOverlayIdx = idx;
+      const o = ovs[idx];
+      if (o && o.url) overlayImg.src = window.assetUrl ? assetUrl(o.url) : o.url;
+    }
+
+    try { ovs.forEach((_, n) => map.setPaintProperty("ov" + n, "raster-opacity", 0)); } catch(e){}
+
+    placeOverlay();
+    updateHandle();
+  }
+
+  function moveSplit(clientX){
+    splitX = Math.max(0.02, Math.min(0.98, clientX / window.innerWidth));
+    placeOverlay();
+    updateHandle();
+  }
+
+  function onDown(e){ dragging = true; e.preventDefault(); e.stopPropagation(); moveSplit(e.touches ? e.touches[0].clientX : e.clientX); }
+  function onMove(e){ if (!dragging) return; e.preventDefault(); moveSplit(e.touches ? e.touches[0].clientX : e.clientX); }
+  function onUp(){ dragging = false; }
+
+  let attempts = 0;
+  const boot = setInterval(() => {
+    if (!window.map || !window.map.isStyleLoaded || !window.map.isStyleLoaded()) {
+      if (++attempts > 40) clearInterval(boot);
       return;
     }
+    clearInterval(boot);
 
-    // When opacity is > 0, we show the wipe and hide the slider effect (set to 100%)
-    const active = +ov.value > 0;
-    w.hidden = !active;
-    if (!active) return;
+    const w = ensureHandle();
+    w.addEventListener("pointerdown", onDown);
+    w.addEventListener("touchstart", onDown, { passive:false });
+    document.addEventListener("pointermove", onMove, { passive:false });
+    document.addEventListener("pointerup", onUp);
+    document.addEventListener("pointercancel", onUp);
+    document.addEventListener("touchmove", onMove, { passive:false });
+    document.addEventListener("touchend", onUp);
 
-    // Force the overlay opacity to 100 — the wipe controls visibility instead
-    try {
-      map.setPaintProperty("ov0", "raster-opacity", 1);
-    } catch(e){}
+    window.map.on("move", placeOverlay);
+    window.map.on("zoom", placeOverlay);
+    window.map.on("resize", () => { placeOverlay(); updateHandle(); });
 
-    // Position the wipe handle, initialize to middle
-    if (!w._x) w._x = window.innerWidth * 0.5;
-    positionWipe();
-  }
+    const ov = $("ov");
+    if (ov) ov.addEventListener("input", () => setTimeout(updateWipe, 30));
+    const ovsSel = $("ovs");
+    if (ovsSel) ovsSel.addEventListener("change", () => { currentOverlayIdx = -1; updateWipe(); });
 
-  function positionWipe(){
-    const map = window.map;
-    if (!map || !wipeEl) return;
-    const x = wipeEl._x;
-    wipeEl.style.left = x + "px";
-
-    // Clip the overlay canvas to the left of the wipe.
-    // MapLibre stacks canvases; the overlay lives in the same canvas as the base
-    // on this setup, so we use CSS clip-path on the whole canvas.
-    // This is approximate: it works because the base and overlay share a canvas.
-    const canvas = map.getCanvas();
-    if (!canvas) return;
-    // If the overlay is a separate source, MapLibre still renders into the same canvas,
-    // so we can't isolate it. Instead, we nudge its opacity to zero right-of-wipe:
-    // the more robust approach is to reduce the overlay opacity based on wipe direction.
-    // For a truly clean wipe we rely on the overlay being rendered in its own layer
-    // whose paint we can toggle — not possible mid-render. So we fall back to a
-    // directional overlay that fades out as the user drags right.
-    const pct = Math.max(0, Math.min(1, x / window.innerWidth));
-    // Left side = old map; right side = modern. When wipe is at 50%, we can't split
-    // a single raster layer, so we approximate: overlay opacity = 1 - pct.
-    try {
-      map.setPaintProperty("ov0", "raster-opacity", 1 - pct * 0.5);
-    } catch(e){}
-  }
-
-  function dragWipe(e){
-    if (!wipeEl || wipeEl.hidden) return;
-    const x = e.touches ? e.touches[0].clientX : e.clientX;
-    wipeEl._x = Math.max(20, Math.min(window.innerWidth - 20, x));
-    positionWipe();
-    e.preventDefault();
-  }
-  function startDrag(e){
-    wipeEl._dragging = true;
-    dragWipe(e);
-    window.addEventListener("pointermove", dragWipe, { passive:false });
-    window.addEventListener("pointerup", endDrag);
-    window.addEventListener("touchmove", dragWipe, { passive:false });
-    window.addEventListener("touchend", endDrag);
-  }
-  function endDrag(){
-    if (wipeEl) wipeEl._dragging = false;
-    window.removeEventListener("pointermove", dragWipe);
-    window.removeEventListener("pointerup", endDrag);
-    window.removeEventListener("touchmove", dragWipe);
-    window.removeEventListener("touchend", endDrag);
-  }
-
-  // Wire up after the map is ready
-  setTimeout(() => {
-    const w = ensureWipe();
-    w.addEventListener("pointerdown", startDrag);
-    w.addEventListener("touchstart", startDrag, { passive:false });
-    const ov = $id("ov");
-    if (ov) ov.addEventListener("input", () => setTimeout(updateWipe, 50));
-    // Show a one-time hint
-    const ovs = (window.SITE && SITE.overlays) || [];
-    if (ovs.length === 1 && !sessionStorage.getItem("wipeHintShown")){
+    if (!sessionStorage.getItem("wipeHintShown")) {
       sessionStorage.setItem("wipeHintShown", "1");
       setTimeout(() => {
-        if (w.hidden) return;
-        const hint = document.createElement("div");
-        hint.id = "wipeHint";
-        hint.textContent = "Drag the handle to compare old and new";
-        document.body.appendChild(hint);
-        setTimeout(() => hint.remove(), 4000);
+        if (!w.hidden) {
+          const hint = document.createElement("div");
+          hint.id = "wipeHint";
+          hint.textContent = "Drag the handle to compare old and new";
+          document.body.appendChild(hint);
+          setTimeout(() => hint.remove(), 4000);
+        }
       }, 1200);
     }
-    updateWipe();
-  }, 3500);
 
-  // Re-check whenever overlay panel state changes
-  setInterval(updateWipe, 2000);
+    updateWipe();
+  }, 250);
+
+  if (window.map) {
+    window.map.on("rotate", () => {
+      if (wipeEl && !wipeEl.hidden && !wipeEl._rotateWarned) {
+        wipeEl._rotateWarned = true;
+        toast("Reset the compass to use the wipe — it only works north-up.");
+      }
+    });
+  }
 })();
 
 /* ============================================================
@@ -3993,157 +3849,7 @@ setTimeout(() => {
   };
 })();
 
-/* ============================================================
-   CHUNK 7 — PRIZES (reads prizes.csv, respects PRIZES in site.csv)
-   A prize is earned when the visitor reaches the required star in
-   every listed stamp. Requirements are "STAMP_ID:stars" joined by |,
-   where stars is "any" | 1 | 2 | 3.
-   ============================================================ */
-(function(){
-  if (!window.SITE) return;
 
-  const PRIZES_READY = (async () => {
-    // respect the master switch — if PASSPORT is off, prizes hide too
-    await (window.SETTINGS_READY || Promise.resolve());
-    if (SITE.prizes === false) return [];
-    try {
-      const r = await (window.dataFetch ? dataFetch("prizes.csv", { cache:"no-store" }) : fetch("prizes.csv"));
-      if (!r.ok) return [];
-      const txt = await r.text();
-      if (!txt.trim()) return [];
-      return Papa.parse(txt, { header:true, skipEmptyLines:"greedy" }).data
-        .filter(r => String(r.PRIZE_ID || "").trim())
-        .map(r => ({
-          id: String(r.PRIZE_ID).trim(),
-          label: String(r.LABEL || r.PRIZE_ID).trim(),
-          reward: String(r.REWARD || "").trim(),
-          code: String(r.CODE || "").trim(),
-          order: parseInt(r.ORDER, 10) || 9999,
-          reqs: parseRequirements(r.REQUIREMENTS)
-        }))
-        .sort((a, b) => a.order - b.order);
-    } catch (e) { return []; }
-  })();
-
-  function parseRequirements(s){
-    return String(s || "").split("|").map(x => x.trim()).filter(Boolean).map(x => {
-      const parts = x.split(":");
-      const stamp = String(parts[0] || "").trim();
-      let stars = String(parts[1] || "any").trim().toLowerCase();
-      if (stars === "") stars = "any";
-      if (stars !== "any" && !["1","2","3"].includes(stars)) stars = "any";
-      return { stamp, stars };
-    }).filter(r => r.stamp);
-  }
-
-  // Count how many stars the visitor has in a stamp. Reads the same
-  // localStorage keys the passport system uses.
-  function starsInStamp(stampId){
-    try {
-      const STAMPS = window.__stampsData || [];
-      const stamp = STAMPS.find(s => String(s.row.STAMP_ID).trim().toLowerCase() === stampId.toLowerCase());
-      if (!stamp) return 0;
-      const KEY = "connersville_stamps_v2" + (window.KEY_SUFFIX || "");
-      const progress = JSON.parse(localStorage.getItem(KEY)) || {};
-      const done = progress._done || {};
-      const bucket = progress[String(stamp.row.STAMP_ID).trim()] || {};
-      const count = stamp.tasks.filter(id => done[id] || bucket[id]).length;
-      const t1 = +stamp.row.STAR1 || Infinity;
-      const t2 = +stamp.row.STAR2 || Infinity;
-      const t3 = +stamp.row.STAR3 || Infinity;
-      if (count >= t3) return 3;
-      if (count >= t2) return 2;
-      if (count >= t1) return 1;
-      return 0;
-    } catch (e) { return 0; }
-  }
-
-  function reqMet(req){
-    const have = starsInStamp(req.stamp);
-    if (req.stars === "any") return have >= 1;
-    return have >= (+req.stars || 1);
-  }
-
-  function prizeProgress(prize){
-    const total = prize.reqs.length;
-    const met = prize.reqs.filter(reqMet).length;
-    return { total, met, done: total > 0 && met >= total };
-  }
-
-  function esc(s){
-    return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[c]));
-  }
-
-  function renderPrizes(prizes){
-    const body = document.querySelector(".passport-body");
-    if (!body || !prizes.length) return;
-    let box = document.getElementById("pPrizes");
-    if (!box){
-      box = document.createElement("section");
-      box.id = "pPrizes";
-      const grid = document.getElementById("stampGrid");
-      if (grid) grid.parentNode.insertBefore(box, grid);
-      else body.appendChild(box);
-    }
-    box.innerHTML = `<h3 class="p-h">Prizes</h3>` + prizes.map(p => {
-      const { total, met, done } = prizeProgress(p);
-      const pct = total ? Math.round(met / total * 100) : 0;
-      return `<div class="p-prize ${done ? "done" : ""}" data-prize="${esc(p.id)}">
-        <h4>${esc(p.label)}</h4>
-        <div class="bar"><i style="width:${pct}%"></i></div>
-        <div class="meta">${done ? "🎉 " + esc(p.reward || "You did it!") : met + " of " + total + " — " + esc(p.reward || "keep going!")}</div>
-        ${done ? `<button type="button" class="p-claim" data-claim="${esc(p.id)}">Show this to claim</button>` : ""}
-      </div>`;
-    }).join("");
-
-    box.querySelectorAll(".p-claim").forEach(btn => {
-      btn.onclick = () => {
-        const p = prizes.find(x => x.id === btn.dataset.claim);
-        if (p) showClaimSlip(p);
-      };
-    });
-  }
-
-  function showClaimSlip(prize){
-    let slip = document.getElementById("claimSlip");
-    if (!slip){
-      slip = document.createElement("div");
-      slip.id = "claimSlip";
-      slip.innerHTML = `<div class="slip">
-        <button class="x" type="button" aria-label="Close">&times;</button>
-        <h2 id="slipTitle"></h2>
-        <p id="slipReward"></p>
-        <div id="slipCode" hidden><span>Claim code</span><b id="slipCodeVal"></b></div>
-        <p class="small">Show this screen to the vendor.</p>
-      </div>`;
-      document.body.appendChild(slip);
-      slip.querySelector(".x").onclick = () => slip.classList.remove("on");
-      slip.addEventListener("click", e => { if (e.target === slip) slip.classList.remove("on"); });
-      document.addEventListener("keydown", e => { if (e.key === "Escape") slip.classList.remove("on"); });
-    }
-    slip.querySelector("#slipTitle").textContent = prize.label;
-    slip.querySelector("#slipReward").textContent = prize.reward || "You've earned this prize!";
-    const cbox = slip.querySelector("#slipCode");
-    if (prize.code){ slip.querySelector("#slipCodeVal").textContent = prize.code; cbox.hidden = false; }
-    else cbox.hidden = true;
-    slip.classList.add("on");
-  }
-
-  // Initial render + refresh when the passport opens or a stamp unlocks
-  PRIZES_READY.then(prizes => {
-    if (!prizes.length) return;
-    window.__prizes = prizes;
-    renderPrizes(prizes);
-
-    const drawer = document.getElementById("passportDrawer");
-    if (drawer){
-      new MutationObserver(() => {
-        if (drawer.classList.contains("open")) renderPrizes(prizes);
-      }).observe(drawer, { attributes: true, attributeFilter: ["class"] });
-    }
-  });
 })();
   
 </script>
