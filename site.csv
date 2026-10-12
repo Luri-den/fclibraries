@@ -12,14 +12,14 @@ BOUNDS_EAST,-84.759256
 BOUNDS_NORTH,39.567955
 MIN_ZOOM,
 MAX_ZOOM,
-FIT_TO_MARKERS,no
+FIT_TO_MARKERS,yes
 PASSPORT,yes
 PASSPORT_RANKS,yes
 YEAR_SLIDER,yes
 OVERLAY_SLIDER,yes
 AERIAL_BUTTON,yes
 EVENT_BUTTON,About
-EVENT_TITLE,WHat's Going On?
+EVENT_TITLE,What's Going On?
 EVENT_TEXT,"Tap a place. A card slides up from the bottom. Drag the little bar at the top of the card up for a bigger view, or down to dismiss.
 
 Filter by category. Use the pills at the top. Tap to hide or show a category; tap ""Reset"" to bring them all back.
