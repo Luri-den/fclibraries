@@ -511,6 +511,14 @@ html.settings-loading #tools { visibility: hidden; }
   position:absolute;top:6px;right:12px;font-size:32px;
   border:0;background:none;cursor:pointer;color:#999;
 }
+/* category chips: plain name + colored dot, one scrolling row */
+#catChipsWrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+#catChips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:nowrap;gap:4px}
+#catChips li{flex:0 0 auto}
+#catChips button{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border:0;background:none;color:#fff;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+#catChips .swatch{width:10px;height:10px;border-radius:50%;background:var(--sw);box-shadow:0 0 0 1.5px #fff;display:inline-block}
+#catChips button[aria-pressed="false"]{opacity:.45}
+#catChips .reset{text-decoration:underline}
 
 </style>
 </head>
