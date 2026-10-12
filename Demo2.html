@@ -520,6 +520,17 @@ html.settings-loading #tools { visibility: hidden; }
 #catChips button[aria-pressed="false"]{opacity:.45}
 #catChips .reset{text-decoration:underline}
 
+@media (max-width:699px){
+  #bar{flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px 6px}
+  .bar-top{order:1;flex:1 1 100%}
+  #q{order:2;flex:1 1 0;min-width:0;width:auto}
+  #tools{display:contents}          /* lets its buttons sit in the same row as search */
+  #near,#tour,#eventBtn,#moreBtn{order:3}
+  #res{order:4;flex:1 1 100%}       /* search results still drop down full width */
+  #catChipsWrap{order:5;flex:1 1 100%}
+  #toolsMore{order:6}               /* the opened More panel goes last */
+}
+  
 </style>
 </head>
 
