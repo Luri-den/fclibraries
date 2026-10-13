@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Connersville — Stories &amp; Spots Editor</title>
+<title>Stories &amp; Spots Editor</title>
 <script src="workspace.js"></script>
 <script>Workspace.install();</script>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
@@ -115,7 +115,7 @@
 <body>
 
 <div id="top">
-  <h1>Connersville — Stories &amp; Spots</h1>
+  <h1>Stories &amp; Spots</h1>
   <button id="pickFile">Pick spots.csv…</button>
   <input id="fileInput" type="file" accept=".csv,text/csv" hidden>
   <button id="pickPhotos" title="Captions, credits and extra photos">Pick photos.csv…</button>
@@ -138,10 +138,10 @@
         </div>
         <div class="chip" draggable="true" data-add="story">
           <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 1l2.6 7.4L22 11l-7.4 2.6L12 21l-2.6-7.4L2 11l7.4-2.6z" fill="#D55E00" stroke="#fff" stroke-width="1.2"/></svg>
-          <span class="lbl">New Story</span>
+          <span class="lbl">New Story Spot</span>
         </div>
       </div>
-      <div class="hint">Drag onto the map. Click any marker to edit. The site shows these only at high zoom or with "Show All Stories and Spots" on — the editor shows them always.</div>
+      <div class="hint">Drag onto the map. Click any marker to edit. The site shows these only at high zoom or with "Show All Stories and Spots" on. The editor always shows them.</div>
     </div>
 
     <div class="sec">
@@ -155,7 +155,7 @@
   </div>
 
   <aside id="right">
-    <div id="form"><div class="empty">Nothing selected.<br><br>Click a marker, or drag <kbd>New Photo Spot</kbd> / <kbd>New Story</kbd> onto the map.</div></div>
+    <div id="form"><div class="empty">Nothing selected.<br><br>Click a marker, or drag <kbd>New Photo Spot</kbd> / <kbd>New Story Spot</kbd> onto the map.</div></div>
   </aside>
 </div>
 
@@ -174,7 +174,7 @@
 
 <script>
 /* ============================================================
-   Connersville — Stories & Spots Editor
+   Stories & Spots Editor
    ============================================================ */
 
 const $ = id => document.getElementById(id);
@@ -196,7 +196,7 @@ const CATEGORIES = {
 };
 const DEFAULT_CAT = "COMM";
 
-/* Exact header order from the sample you provided */
+/* Exact header order */
 const SPOT_COLS = ["SPOT_ID","TITLE","LAT","LONG","YEAR","PHOTO","DETAILS","CREDIT","KIND","CATEGORY","SERIES","ORDER","SOURCE","STAFF_NOTE","ICON","ICON_COLOR","EFFECT"];
 
 /* ---------- State ---------- */
@@ -581,8 +581,8 @@ function renderForm(){
       <div class="field">
         <label>Kind</label>
         <select id="f-KIND">
-          <option value="spot"  ${kind==="spot"?"selected":""}>spot — shows what a place looks like</option>
-          <option value="story" ${kind==="story"?"selected":""}>story — tells what happened here</option>
+          <option value="spot"  ${kind==="spot"?"selected":""}>Spot: Shows an Area, such as Before / After</option>
+          <option value="story" ${kind==="story"?"selected":""}>Story: What Happened Here, a Story / Photo</option>
         </select>
       </div>
 
