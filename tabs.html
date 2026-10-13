@@ -95,7 +95,7 @@
     <button class="top-tab" data-target="p12" data-blurb="Design and upload images of a building interior.">Building Interior</button>
     <button class="top-tab" data-target="p13" data-blurb="Open the live map to view changes once they are completed and uploaded.">Live View</button>
     
-    <!-- Add tabs 4 through 7 identically here -->
+    <!-- Add tabs identically here -->
   </div>
 
   <!-- 2. Dynamic Blurb Area -->
@@ -222,10 +222,10 @@ document.addEventListener("DOMContentLoaded", () => {
       text.innerHTML = "Working on: <b>the live site</b>. Whatever you publish changes the live map. To build an event without that, use <b>Design an event</b> on the Events tab.";
       acts.innerHTML = "";
     }
-    const live = document.querySelector("#p9 iframe");
+    const live = document.querySelector("#p13 iframe");
     if (live) live.src = slug ? "Demo2.html?event=" + encodeURIComponent(slug) + "&t=" + Date.now() : "Demo2.html";
     if (reload) document.querySelectorAll(".page-container iframe").forEach(f => {
-      if (f.closest("#p9") || (from && f.contentWindow === from)) return;
+      if (f.closest("#p13") || (from && f.contentWindow === from)) return;
       try { f.contentWindow.location.reload(); } catch (e) { f.src = f.getAttribute("src"); }
     });
   }
