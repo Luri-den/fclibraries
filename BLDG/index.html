@@ -5,53 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Building Map Designer</title>
 <style>
-.shape-library {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  max-height: 260px;
-  overflow-y: auto;
-  padding: 2px;
-}
-.shape-card {
-  position: relative;
-  border: 1px solid #cbd4d9;
-  border-radius: 7px;
-  background: #fff;
-  padding: 4px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-.shape-card:hover { background: var(--accent2); border-color: var(--accent); }
-.shape-card.active { outline: 2px solid var(--accent); }
-.shape-card svg { width: 100%; height: 42px; display: block; }
-.shape-card .cap {
-  font-size: 10px;
-  color: var(--muted);
-  text-align: center;
-  width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.shape-card .del {
-  position: absolute;
-  top: -6px; right: -6px;
-  width: 18px; height: 18px;
-  border-radius: 50%;
-  border: 1px solid #c7d0d5;
-  background: #fff;
-  color: var(--danger);
-  font-size: 11px;
-  line-height: 1;
-  padding: 0;
-  display: none;
-}
-.shape-card:hover .del { display: block; }
-  
+
 :root {
   --ink: #24313a;
   --muted: #64727c;
@@ -248,7 +202,7 @@ footer {
 <div class="app">
 <aside class="left">
   <section class="group">
-    <h2>Drawing Tools</h2>
+    <h2>Drawing tools</h2>
     <div class="tools" id="tools">
       <button data-tool="select" class="active">↖ Select</button><button data-tool="wall">━ Wall</button>
       <button data-tool="erase">⌫ Remove</button><button data-tool="door">🚪 Door</button>
@@ -260,7 +214,7 @@ footer {
     <p class="hint">Choose a tool, then click or drag on the plan. Select objects to edit them. Remove deletes the clicked item or wall segment.</p>
   </section>
   <section class="group">
-    <h2>Place an Item</h2>
+    <h2>Place an item</h2>
     <div class="field"><label for="preset">Furniture / icon</label>
       <select id="preset">
         <option value="desk">Desk</option><option value="chair">Chair</option><option value="table">Table</option>
@@ -271,38 +225,8 @@ footer {
         <option value="elevator">Elevator</option><option value="plant">Plant</option><option value="custom">Custom labeled box</option>
       </select>
     </div>
-    <button id="placeBtn" class="wide">Place Selected Item</button>
+    <button id="placeBtn" class="wide">Place selected item</button>
   </section>
-  <section class="group" id="librarySection">
-  <h2>My Shape Library</h2>
-  <div class="row" style="margin-bottom:8px">
-    <button id="saveShapeBtn" class="wide" disabled>＋ Save selected to library</button>
-  </div>
-  <div class="row" style="margin-bottom:8px">
-    <button id="exportLibBtn">Export library</button>
-    <button id="clearLibBtn" class="danger">Clear</button>
-  </div>
-  <div class="shape-library" id="shapeLibrary">
-    <p class="hint" id="emptyLibrary">Select an object and click "Save selected to library" to add your first custom shape.</p>
-  </div>
-</section>
-
-<section class="group">
-  <h2>Drawing Style</h2>
-  <div class="field">
-    <label for="styleFill">Fill Color</label>
-    <input id="styleFill" type="color" value="#d7e8ef" style="width:100%;height:34px">
-  </div>
-  <div class="field">
-    <label for="styleStroke">Outline Color</label>
-    <input id="styleStroke" type="color" value="#526b77" style="width:100%;height:34px">
-  </div>
-  <div class="field">
-    <label for="styleLabel">Label for New Shapes</label>
-    <input id="styleLabel" type="text" placeholder="e.g. Ticket desk">
-  </div>
-  <p class="hint">These apply to the next shape you draw or place. Selected objects use the properties panel on the right.</p>
-</section>
   <section class="group">
     <h2>Floor levels</h2>
     <div class="floor-tabs" id="floorTabs"></div>
@@ -327,15 +251,15 @@ footer {
 <main>
   <div class="canvasbar">
     <strong id="floorTitle">Ground Floor</strong><span class="status" id="selectionStatus">No selection</span>
-    <span class="spacer"></span><button id="uploadBtn">Upload Plan Image</button><input id="imageFile" type="file" accept="image/*" hidden>
-    <button id="toggleImageBtn">Hide Image</button><button id="clearImageBtn">Remove Image</button>
+    <span class="spacer"></span><button id="uploadBtn">Upload plan image</button><input id="imageFile" type="file" accept="image/*" hidden>
+    <button id="toggleImageBtn">Hide image</button><button id="clearImageBtn">Remove image</button>
   </div>
   <div id="viewport"><div id="scene"><svg id="drawing" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" aria-label="Editable building floor plan"></svg></div></div>
   <footer><span id="coordStatus">Ready</span><span class="spacer"></span><span>Drawing units are abstract until calibrated to a known measurement.</span></footer>
 </main>
 <aside class="right">
   <section class="group">
-    <h2>Selected Object</h2>
+    <h2>Selected object</h2>
     <div id="emptySelection" class="hint">Select an object or wall to edit its properties.</div>
     <div id="properties" hidden>
       <div class="field"><label for="propLabel">Label</label><input id="propLabel" type="text"></div>
@@ -354,14 +278,14 @@ footer {
     </div>
   </section>
   <section class="group">
-    <h2>Map Settings</h2>
+    <h2>Map settings</h2>
     <div class="field"><label for="mapTitle">Plan title</label><input id="mapTitle" type="text" value="Building Plan"></div>
     <div class="field"><label for="scaleNote">Scale / note</label><input id="scaleNote" type="text" value="Concept plan — verify dimensions on site"></div>
     <div class="field"><label for="backgroundColor">Canvas color</label><input id="backgroundColor" type="color" value="#ffffff"></div>
     <button id="applyMapBtn">Apply map settings</button>
   </section>
   <section>
-    <h2>Object List</h2><div class="object-list" id="objectList"></div>
+    <h2>Object list</h2><div class="object-list" id="objectList"></div>
     <p class="hint">Click a list item to select it.</p>
   </section>
 </aside>
@@ -411,27 +335,6 @@ const defaults={
     ]}
   ]
 };
-  /* ---------- Shape library ---------- */
-const LIB_KEY = "bldg.shapeLibrary.v1";
-
-function loadLibrary() {
-  try {
-    const raw = localStorage.getItem(LIB_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
-}
-function saveLibrary(lib) {
-  try { localStorage.setItem(LIB_KEY, JSON.stringify(lib)); }
-  catch (e) { notify("Library not saved", "Browser storage is full or unavailable."); }
-}
-
-let shapeLibrary = loadLibrary();
-let armedLibraryShape = null; // { type, w, h, color, stroke, label }
-
-/* Build a stable fingerprint so identical shapes collapse. */
-function shapeKey(s) {
-  return [s.type, s.w, s.h, s.color, s.stroke, (s.label || "").trim()].join("|");
-}
 let project=clone(defaults), floorIndex=0, tool="select", selectedId=null, drag=null, history=[], historyIndex=-1, zoom=1, pan={x:0,y:0}, showGrid=true, snap=true, gridSize=20, backgroundImageVisible=true;
 const floor=()=>project.floors[floorIndex], objects=()=>floor().objects;
 function record(){history=history.slice(0,historyIndex+1);history.push(clone(project));if(history.length>80)history.shift();historyIndex=history.length-1;updateHistoryButtons();}
@@ -790,61 +693,17 @@ function onCanvasDown(e){
  const p=point(e);
  if(tool==="select"){selectedId=null;render();return;}
  if(tool==="erase")return;
-if (tool === "icon" || tool === "stairs" || tool === "elevator") {
-  // If a library shape is armed, use its exact geometry + style.
-  if (armedLibraryShape) {
-    const s = armedLibraryShape;
-    const o = makeObject(s.type, p.x, p.y, s.w, s.h);
-    o.color = s.color;
-    o.stroke = s.stroke;
-    o.label = $("styleLabel").value.trim() || s.label || o.label;
-    if (s.thickness != null) o.thickness = s.thickness;
-    if (s.solid != null) o.solid = s.solid;
-    if (s.block != null) o.block = s.block;
-    o.rotation = 0;
-    o.skew = 0;
-
-    const err = o.block !== false ? collision(o) : null;
-    if (err) {
-      notify("Placement blocked", `This item ${err}. Move it elsewhere or disable collision checks.`);
-      return;
-    }
-    record();
-    objects().push(o);
-    selectedId = o.id;
-    armedLibraryShape = null;
-    renderShapeLibrary();
-    setTool("select");
-    render();
-    return;
-  }
-
-  const type = tool === "icon" ? $("preset").value : tool === "stairs" ? "stairsUp" : "elevator";
-  const size = type === "elevator" ? 70
-    : type.startsWith("stairs") ? 95
-    : type === "bookshelf" ? 45
-    : type === "extinguisher" ? 24
-    : type === "aed" ? 32
-    : type === "desk" ? 90
-    : 60;
-
-  const o = makeObject(type, p.x, p.y, size, type.startsWith("stairs") ? 130 : size);
-  // Apply current style-bar defaults
-  o.color = $("styleFill").value || o.color;
-  o.stroke = $("styleStroke").value || o.stroke;
-  const customLabel = $("styleLabel").value.trim();
-  if (customLabel) o.label = customLabel;
-
+ if(tool==="icon"||tool==="stairs"||tool==="elevator"){
+   const type=tool==="icon"?$("preset").value:tool==="stairs"?"stairsUp":"elevator";
+   const size=type==="elevator"?70: type.startsWith("stairs")?95: type==="bookshelf"?45: type==="extinguisher"?24: type==="aed"?32: type==="desk"?90:60;
+   const o=makeObject(type,p.x,p.y,size,type.startsWith("stairs")?130:size);
   const err = o.block !== false ? collision(o) : null;
-  if (err) {
-    notify("Placement blocked", `This item ${err}. Move it elsewhere or disable collision checks.`);
-    return;
-  }
-  record();
-  objects().push(o);
-  selectedId = o.id;
-  setTool("select");
-  render();
+
+if (err) {
+  notify(
+    "Placement blocked",
+    `This item ${err}. You can move it elsewhere or turn off "Enforce collision checks".`
+  );
   return;
 }
    record();objects().push(o);selectedId=o.id;setTool("select");render();return;
@@ -1013,7 +872,6 @@ function onCanvasUp(e){
   }
 
   render();
-   renderFloorTabs();renderObjectList();renderProperties();renderShapeLibrary();updateStatus();
   return;
 }
  const d=drag;drag=null;const p=d.last||d.start;let x=Math.min(d.start.x,p.x),y=Math.min(d.start.y,p.y),w=Math.abs(p.x-d.start.x),h=Math.abs(p.y-d.start.y);
@@ -1022,17 +880,8 @@ function onCanvasUp(e){
    const o=makeObject(d.type==="wall"?"wall":"line",d.start.x,d.start.y,p.x-d.start.x,p.y-d.start.y);if(o.type==="wall"){o.solid=true;o.thickness=10;}record();objects().push(o);selectedId=o.id;
  }else if(d.type==="door"){
    const ww=Math.max(w,h,60);const o=makeObject("door",x,y,ww,ww);o.label="Door / opening";o.block=false;record();objects().push(o);selectedId=o.id;
-} else if (["rect", "ellipse"].includes(d.type)) {
-  if (w < 4 || h < 4) return;
-  const o = makeObject(d.type, x, y, w, h);
-  o.color = $("styleFill").value || o.color;
-  o.stroke = $("styleStroke").value || o.stroke;
-  const customLabel = $("styleLabel").value.trim();
-  if (customLabel) o.label = customLabel;
-  record();
-  objects().push(o);
-  selectedId = o.id;
-}
+ }else if(["rect","ellipse"].includes(d.type)){
+   if(w<4||h<4)return;const o=makeObject(d.type,x,y,w,h);record();objects().push(o);selectedId=o.id;
  }else if(d.type==="freehand"){
    if(d.points.length<2)return;const pts=d.points;const minX=Math.min(...pts.map(a=>a.x)),minY=Math.min(...pts.map(a=>a.y));const maxX=Math.max(...pts.map(a=>a.x)),maxY=Math.max(...pts.map(a=>a.y));const o=makeObject("freehand",minX,minY,Math.max(1,maxX-minX),Math.max(1,maxY-minY));o.path=pts.map((pt,i)=>(i?"L":"M")+(pt.x-minX)+" "+(pt.y-minY)).join(" ");record();objects().push(o);selectedId=o.id;
  }else if(d.type==="text"){
@@ -1090,146 +939,8 @@ document.addEventListener("keydown",e=>{
  else if(e.key==="Delete"&&selectedId)$("deleteBtn").click();
  else if(e.key==="Escape"){selectedId=null;setTool("select");render();}
 });
-  function renderShapeLibrary() {
-  const wrap = $("shapeLibrary");
-  wrap.innerHTML = "";
-  if (!shapeLibrary.length) {
-    wrap.innerHTML =
-      '<p class="hint" id="emptyLibrary">Select an object and click "Save selected to library" to add your first custom shape.</p>';
-    return;
-  }
-  shapeLibrary.forEach((s, idx) => {
-    const card = document.createElement("button");
-    card.className = "shape-card" + (armedLibraryShape && armedLibraryShape._idx === idx ? " active" : "");
-    card.title = `${s.label || s.type} — ${s.w}×${s.h}`;
-
-    const preview = document.createElementNS(NS, "svg");
-    preview.setAttribute("viewBox", `0 0 ${s.w} ${s.h}`);
-    const g = document.createElementNS(NS, "g");
-    preview.appendChild(g);
-
-    // Reuse the existing renderer so custom shapes look identical to placed ones.
-    const temp = { ...s, id: "_preview", x: 0, y: 0, rotation: 0 };
-    // drawObject needs a parent + reads global state, so call the same code path:
-    // easiest is to build a throwaway object and let drawObject draw into `g`.
-    // We temporarily swap $('drawing') is messy — instead, inline the minimal draw:
-    drawPreviewInto(g, temp, s.w, s.h);
-
-    card.appendChild(preview);
-
-    const cap = document.createElement("span");
-    cap.className = "cap";
-    cap.textContent = s.label || s.type;
-    card.appendChild(cap);
-
-    const del = document.createElement("button");
-    del.className = "del";
-    del.textContent = "✕";
-    del.title = "Remove from library";
-    del.onclick = (ev) => {
-      ev.stopPropagation();
-      shapeLibrary.splice(idx, 1);
-      saveLibrary(shapeLibrary);
-      if (armedLibraryShape && armedLibraryShape._idx === idx) armedLibraryShape = null;
-      renderShapeLibrary();
-    };
-    card.appendChild(del);
-
-    card.onclick = () => {
-      armedLibraryShape = { ...s, _idx: idx };
-      setTool("icon");
-      $("selectionStatus").textContent = `Click plan to place: ${s.label || s.type}`;
-      renderShapeLibrary();
-    };
-
-    wrap.appendChild(card);
-  });
-}
-
-/* Minimal shape drawer for previews — reuses the same geometry as drawObject
-   but without selection handles, labels, or event listeners. */
-function drawPreviewInto(parent, o, w, h) {
-  const fill = o.color || "#d7e8ef";
-  const stroke = o.stroke || "#526b77";
-  const NSL = NS;
-  const el = (tag, attrs) => {
-    const e = document.createElementNS(NSL, tag);
-    for (const [k, v] of Object.entries(attrs)) if (v != null) e.setAttribute(k, v);
-    parent.appendChild(e);
-    return e;
-  };
-  if (o.type === "wall") {
-    el("line", { x1: 0, y1: 0, x2: w, y2: h, stroke, "stroke-width": o.thickness || 8, "stroke-linecap": "square" });
-  } else if (o.type === "ellipse") {
-    el("ellipse", { cx: w / 2, cy: h / 2, rx: w / 2, ry: h / 2, fill, stroke, "stroke-width": 2 });
-  } else if (o.type === "line") {
-    el("line", { x1: 0, y1: 0, x2: w, y2: h, stroke, "stroke-width": 3 });
-  } else if (o.type === "freehand") {
-    el("path", { d: o.path || `M0 0 L${w} ${h}`, fill: "none", stroke, "stroke-width": 3, "stroke-linecap": "round" });
-  } else if (o.type === "text") {
-    const t = el("text", { x: 2, y: h * 0.8, "font-size": Math.max(10, h * 0.7), fill: stroke });
-    t.textContent = o.label || "T";
-  } else {
-    el("rect", { x: 0, y: 0, width: w, height: h, rx: 2, fill, stroke, "stroke-width": 2 });
-    if (o.type === "table") el("ellipse", { cx: w / 2, cy: h / 2, rx: w * 0.4, ry: h * 0.35, fill: "none", stroke });
-    if (o.type === "desk") el("rect", { x: w * 0.08, y: h * 0.1, width: w * 0.84, height: h * 0.2, fill: "#ffffff88", stroke, "stroke-width": 1 });
-    if (o.type === "chair") el("rect", { x: w * 0.2, y: h * 0.15, width: w * 0.6, height: h * 0.3, rx: 3, fill, stroke });
-    if (o.type === "bookshelf") for (let i = 1; i < 4; i++) el("line", { x1: 2, y1: h * i / 4, x2: w - 2, y2: h * i / 4, stroke, "stroke-width": 2 });
-  }
-}
-  $("saveShapeBtn").onclick = () => {
-  const o = getSelected();
-  if (!o) return;
-  const entry = {
-    type: o.type,
-    label: o.label || typeLabel(o),
-    w: Math.max(4, Math.round(o.w || 40)),
-    h: Math.max(4, Math.round(o.h || 40)),
-    color: o.color || "#d7e8ef",
-    stroke: o.stroke || "#526b77",
-    thickness: o.thickness,
-    solid: o.solid,
-    block: o.block
-  };
-  const key = shapeKey(entry);
-  const existing = shapeLibrary.findIndex(s => shapeKey(s) === key);
-  if (existing >= 0) {
-    shapeLibrary[existing] = entry; // replace / refresh
-  } else {
-    shapeLibrary.push(entry);
-  }
-  saveLibrary(shapeLibrary);
-  renderShapeLibrary();
-  notify("Saved to library", `"${entry.label}" is now available in My shape library.`);
-};
-
-$("exportLibBtn").onclick = () => {
-  const blob = new Blob(
-    [JSON.stringify({ version: 1, shapes: shapeLibrary }, null, 2)],
-    { type: "application/json" }
-  );
-  downloadBlob(blob, "my-shapes.json");
-};
-
-$("clearLibBtn").onclick = () => {
-  if (!shapeLibrary.length) return;
-  if (confirm("Remove all custom shapes from your library?")) {
-    shapeLibrary = [];
-    saveLibrary(shapeLibrary);
-    armedLibraryShape = null;
-    renderShapeLibrary();
-  }
-};
-
-// Enable "Save selected" whenever something is selected
-const _origRenderProperties = renderProperties;
-renderProperties = function () {
-  _origRenderProperties();
-  $("saveShapeBtn").disabled = !getSelected();
-};
 function init(){const scene=$("scene");const img=document.createElement("img");img.id="sceneImage";img.alt="Uploaded floor plan background";scene.insertBefore(img,$("drawing"));history=[];historyIndex=-1;record();render();applyBackgroundImage();}
-renderShapeLibrary();
-  init();
+init();
 })();
 </script>
 </body>
