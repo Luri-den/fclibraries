@@ -623,6 +623,21 @@ html.settings-loading #tools { visibility: hidden; }
   #catChips{flex-wrap:wrap;overflow-x:visible}
 }
 
+
+/* ===== Layout settings from site.csv: LAYOUT_TOP / LAYOUT_MORE / LAYOUT_OFF, SEARCH_WIDTH(_PHONE), BAR_STYLE ===== */
+.lay-off{display:none!important}
+.lay-sp{flex:1 1 0;min-width:0;pointer-events:none}
+.lay-nr{flex:1 1 100%;height:0}
+@media (min-width:721px){ html.qwd #q{flex:0 0 var(--qw-d)!important} }
+@media (max-width:720px){ html.qwp #q{flex:0 0 var(--qw-p)!important} }
+html.lay #passportBtn{margin-left:0!important}
+html.lay #moreBtn{display:inline-block!important}
+html.lay #moreBtn[hidden]{display:none!important}
+html.lay #toolsMore{display:none!important}
+html.lay #tools.open #toolsMore{display:flex!important;order:50;flex:1 1 100%;flex-wrap:wrap;align-items:flex-end;gap:8px;background:var(--bar,#E47303);padding:10px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.35);box-sizing:border-box}
+html.sq #q,html.sq #tools button,html.sq #passportBtn,html.sq #catChips button,html.sq #yearBox,html.sq #ovw{border-radius:4px!important}
+html.sq #tools.open #toolsMore{border-radius:6px}
+
 </style>
 </head>
 
@@ -1062,6 +1077,39 @@ SITE.shapes = {};
 SITE.customShapes = {};
 SITE.event = { button: "About", title: "", text: "" };
 
+function applyLayout(S){
+  const root = document.documentElement, g = k => (S[k] || "").split(",").map(x => x.trim()).filter(Boolean);
+  const pct = k => { const v = parseFloat(S[k]); return v >= 20 && v <= 100 ? v : null; };
+  const css = v => v >= 100 ? "100%" : "calc(" + v + "% - 4px)";
+  const wd = pct("SEARCH_WIDTH"), wp = pct("SEARCH_WIDTH_PHONE");
+  if (wd) { root.style.setProperty("--qw-d", css(wd)); root.classList.add("qwd"); }
+  if (wp) { root.style.setProperty("--qw-p", css(wp)); root.classList.add("qwp"); }
+  if ((S.BAR_STYLE || "").toLowerCase() === "bar") root.classList.add("sq");
+
+  let top = g("LAYOUT_TOP"), more = g("LAYOUT_MORE"), off = g("LAYOUT_OFF");
+  if (!top.length && !more.length && !off.length) return;      // no saved layout: keep the built-in one
+  const el = { search: $("q"), near: $("near"), event: $("eventBtn"), more: $("moreBtn"), tour: $("tour"), tours: $("tours"),
+    stories: $("stories"), chips: $("catChipsWrap"), aerial: $("aerialBtn"), year: $("yearBox"), oldmaps: $("ovw"), passport: $("passportBtn") };
+  const helper = id => id === "spacer" || id === "newrow";
+  const seen = new Set();
+  const uniq = a => a.filter(id => (el[id] || helper(id)) && !seen.has(id) && seen.add(id));
+  top = uniq(top);
+  more = uniq(more.filter(id => id !== "search" && id !== "more" && !helper(id)));
+  off = uniq(off.filter(id => id !== "search" && id !== "more"));
+  Object.keys(el).forEach(id => { if (!seen.has(id)) { top.push(id); seen.add(id); } });   // anything not listed stays in the bar
+
+  root.classList.add("lay");
+  const T = $("tools"), M = $("toolsMore"), mk = c => { const s = document.createElement("span"); s.className = c; return s; };
+  top.forEach((id, i) => {
+    const n = helper(id) ? mk(id === "spacer" ? "lay-sp" : "lay-nr") : el[id];
+    n.style.order = 10 + i;
+    if (helper(id) || n.parentNode === M) T.appendChild(n);
+  });
+  more.forEach((id, i) => { el[id].style.order = i; M.appendChild(el[id]); });
+  off.forEach(id => { if (el[id]) el[id].classList.add("lay-off"); });
+  if (typeof syncMoreBtn === "function") syncMoreBtn();
+}
+
 const SETTINGS_READY = dataFetch("site.csv", { cache: "no-store" })
   .then(r => r.ok ? r.text() : "")
   .catch(() => "")
@@ -1098,6 +1146,7 @@ const SETTINGS_READY = dataFetch("site.csv", { cache: "no-store" })
     SITE.place = S.PLACE || "";
     SITE.event = { button: S.EVENT_BUTTON || "About", title: fill(S.EVENT_TITLE || ""), text: fill(S.EVENT_TEXT || "") };
     SITE.fromCsv = true;
+    try { applyLayout(S); } catch (e) { console.warn("Layout settings skipped:", e); }
   });
 
 Promise.race([SETTINGS_READY, new Promise(r => setTimeout(r, 1500))])
