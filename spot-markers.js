@@ -31,8 +31,8 @@
   };
 
   const ICON_LABELS = {
-    camera: "Camera", photo: "Framed photo", vista: "Vista (eye)", pin: "Map pin",
-    sparkle: "Sparkle", book: "Book", bubble: "Speech bubble", alert: "Exclamation"
+    camera: "Camera", photo: "Framed Photo", vista: "Vista (Eye)", pin: "Map Pin",
+    sparkle: "Sparkle", book: "Book", bubble: "Speech Bubble", alert: "Exclamation"
   };
 
   const COLOR_NAMES = {
@@ -41,11 +41,11 @@
   };
 
   const EFFECT_LABELS = {
-    none: "None (still)",
-    twinkle: "Twinkle (grow and fade)",
-    ripple: "Ripple (ring spreads out)",
-    flash: "Flash (quick bright burst)",
-    bob: "Bob (gentle float)"
+    none: "None",
+    twinkle: "Twinkle",
+    ripple: "Ripple",
+    flash: "Camera Flash",
+    bob: "Float"
   };
 
   /* Icon artwork, 24x24. c = fill color. The camera's lens carries class "klens"
