@@ -42,6 +42,15 @@ small{color:#777;font-size:11px;display:block;margin-top:3px}
 #warn div{background:#f8d7da;border-radius:4px;padding:6px 8px;margin-top:6px}
 .pin-center{width:26px;height:26px;border-radius:50%;border:4px solid #d40000;background:#fff8;box-shadow:0 0 0 2px #fff,0 1px 5px #0008;cursor:grab}
 .handle{width:18px;height:18px;background:#0072B2;border:3px solid #fff;box-shadow:0 1px 4px #0008;cursor:grab}
+select{width:100%;padding:6px;font-size:14px;border:1px solid #bbb;border-radius:4px}
+input[type=range]{padding:0;border:0}
+.zl{font-size:12px;font-weight:bold;color:#555;margin:8px 0 3px}
+#board .zone{min-height:40px;display:flex;flex-wrap:wrap;gap:6px;padding:6px;border:2px dashed #bbb;border-radius:6px;background:#fff}
+#board .zone.hot{border-color:#28a745;background:#eefaf0}
+.chip{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;background:#e9ecef;border:1px solid #aaa;border-radius:999px;padding:6px 11px;font-size:12px}
+.chip.lock{background:#fff3cd}
+.chip.dragging{opacity:.35}
+.chip.ghost{position:fixed;z-index:99;pointer-events:none;opacity:.92;box-shadow:0 2px 8px #0006}
 @media(max-width:760px){main{flex-direction:column}#side{width:100%;max-height:48%;border-left:0;border-top:1px solid #ccc}}
 </style>
 </head>
@@ -74,6 +83,23 @@ small{color:#777;font-size:11px;display:block;margin-top:3px}
     <input data-k="TAB_TITLE">
     <label>Top Bar Color</label>
     <div class="two"><input type="color" data-k="BAR_COLOR"><input data-k="BAR_COLOR" placeholder="#E47303"></div>
+
+    <h2>Top Bar Layout</h2>
+    <small>Press and drag a button into another box. Top bar order is left to right and wraps to new rows. Yellow buttons can't leave the top bar.</small>
+    <div id="board">
+      <div class="zl">Top bar</div><div class="zone" id="zTop" data-z="top"></div>
+      <div class="zl">Inside the More &#9662; drawer</div><div class="zone" id="zMore" data-z="more"></div>
+      <div class="zl">Hidden</div><div class="zone" id="zOff" data-z="off"></div>
+    </div>
+    <small id="layNote"></small>
+    <small>"&harr; Flexible space" pushes everything after it to the right edge. "&crarr; New row" starts a new line. A saved layout applies to phones too. The checkboxes further down (year slider, aerial, About text) still decide whether a control exists at all.</small>
+    <div class="row"><button type="button" id="layReset">Back to built-in layout</button></div>
+    <label>Search bar width, computer: <b id="qwdV"></b></label>
+    <input type="range" min="25" max="100" step="5" data-k="SEARCH_WIDTH">
+    <label>Search bar width, phone: <b id="qwpV"></b></label>
+    <input type="range" min="50" max="100" step="5" data-k="SEARCH_WIDTH_PHONE">
+    <label>Button style</label>
+    <select data-k="BAR_STYLE"><option value="">Pill (rounded)</option><option value="bar">Bar (square corners)</option></select>
 
     <h2>Welcome Screen</h2>
     <label>Theme</label>
@@ -168,7 +194,9 @@ const DEFAULTS = {
   EVENT_TITLE: "",
   EVENT_TEXT: "",
   WELCOME_THEME: "",
-  WELCOME_TEXT: "Welcome to|{PLACE}"
+  WELCOME_TEXT: "Welcome to|{PLACE}",
+  BAR_STYLE: "", SEARCH_WIDTH: "", SEARCH_WIDTH_PHONE: "",
+  LAYOUT_TOP: "", LAYOUT_MORE: "", LAYOUT_OFF: ""
 };
 
 (function () {   // theme choices
@@ -266,6 +294,7 @@ function syncUI(except) {
     else f.value = v;
   });
   preview();
+  renderBoard();
 }
 
 function preview() {
@@ -374,6 +403,92 @@ $('fSite').addEventListener('change', async e => {
   // no site.csv on the server yet — leave the panel disabled so the user can use Start from defaults
   status('No site.csv found next to this page. Click "Start from defaults" to build one, or pick a file.');
 })();
+// ---------- top bar layout board ----------
+const CTRL = { search: 'Search bar', near: 'Near Me', event: 'About button', more: 'More \u25BE', tour: 'Take the Tour', tours: 'Tours',
+  stories: 'Stories & Spots', chips: 'Category pills', aerial: 'Aerial', year: 'Year slider', oldmaps: 'Old Maps', passport: 'Passport',
+  spacer: '\u2194 Flexible space', newrow: '\u21B5 New row' };
+const DEF_TOP = ['search','near','event','more','aerial','tour','tours','stories','chips','spacer','passport','year','oldmaps'];
+const NO_MORE = ['search','more','spacer','newrow'], NO_OFF = ['search','more'];
+let drag = null;
+
+function getLayout() {
+  const list = k => (S[k] || '').split(',').map(x => x.trim()).filter(x => CTRL[x]);
+  let top = list('LAYOUT_TOP'), more = list('LAYOUT_MORE'), off = list('LAYOUT_OFF');
+  if (!top.length && !more.length && !off.length) { top = DEF_TOP.slice(); off = ['newrow']; }
+  const seen = new Set();
+  const uniq = a => a.filter(id => !seen.has(id) && seen.add(id));
+  top = uniq(top); more = uniq(more.filter(id => !NO_MORE.includes(id))); off = uniq(off.filter(id => !NO_OFF.includes(id)));
+  Object.keys(CTRL).forEach(id => { if (!seen.has(id)) (id === 'spacer' || id === 'newrow' ? off : top).push(id); });
+  return { top, more, off };
+}
+
+function renderBoard() {
+  if (!S || drag) return;
+  const L = getLayout();
+  [['top', 'zTop'], ['more', 'zMore'], ['off', 'zOff']].forEach(([z, id]) => {
+    $(id).innerHTML = '';
+    L[z].forEach(c => {
+      const d = el('chip' + (NO_MORE.includes(c) && NO_OFF.includes(c) ? ' lock' : ''));
+      d.textContent = CTRL[c]; d.dataset.id = c; $(id).appendChild(d);
+    });
+  });
+  $('layNote').textContent = (S.LAYOUT_TOP || S.LAYOUT_MORE || S.LAYOUT_OFF)
+    ? 'Custom layout: it will be saved in site.csv.'
+    : 'Showing the built-in computer layout. Nothing changes until you move something.';
+  $('qwdV').textContent = S.SEARCH_WIDTH ? S.SEARCH_WIDTH + '%' : 'default';
+  $('qwpV').textContent = S.SEARCH_WIDTH_PHONE ? S.SEARCH_WIDTH_PHONE + '%' : 'default';
+}
+
+function saveBoard() {
+  const g = id => [...$(id).children].map(c => c.dataset.id).join(',');
+  S.LAYOUT_TOP = g('zTop'); S.LAYOUT_MORE = g('zMore'); S.LAYOUT_OFF = g('zOff');
+}
+
+$('board').addEventListener('pointerdown', e => {
+  const c = e.target.closest('.chip');
+  if (!c || !S) return;
+  e.preventDefault();
+  drag = { c, x: e.clientX, y: e.clientY, on: false };
+});
+window.addEventListener('pointermove', e => {
+  if (!drag) return;
+  if (!drag.on) {
+    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+    drag.on = true; drag.c.classList.add('dragging');
+    drag.g = drag.c.cloneNode(true); drag.g.classList.remove('dragging'); drag.g.classList.add('ghost');
+    document.body.appendChild(drag.g);
+  }
+  drag.g.style.left = (e.clientX + 8) + 'px'; drag.g.style.top = (e.clientY + 8) + 'px';
+  document.querySelectorAll('#board .zone').forEach(z => z.classList.remove('hot'));
+  const hit = document.elementFromPoint(e.clientX, e.clientY);
+  const z = hit && hit.closest('#board .zone');
+  if (!z) return;
+  const id = drag.c.dataset.id;
+  if ((z.dataset.z === 'more' && NO_MORE.includes(id)) || (z.dataset.z === 'off' && NO_OFF.includes(id))) return;
+  z.classList.add('hot');
+  let before = null;
+  for (const k of z.querySelectorAll('.chip:not(.dragging)')) {
+    const r = k.getBoundingClientRect();
+    if (e.clientY < r.top || (e.clientY <= r.bottom && e.clientX < r.left + r.width / 2)) { before = k; break; }
+  }
+  z.insertBefore(drag.c, before);
+});
+function endDrag() {
+  if (!drag) return;
+  const d = drag; drag = null;
+  document.querySelectorAll('#board .zone').forEach(z => z.classList.remove('hot'));
+  if (d.g) d.g.remove();
+  d.c.classList.remove('dragging');
+  if (d.on) { saveBoard(); syncUI(); }
+}
+window.addEventListener('pointerup', endDrag);
+window.addEventListener('pointercancel', endDrag);
+$('layReset').onclick = () => {
+  if (!S) return;
+  ['LAYOUT_TOP', 'LAYOUT_MORE', 'LAYOUT_OFF', 'SEARCH_WIDTH', 'SEARCH_WIDTH_PHONE', 'BAR_STYLE'].forEach(k => S[k] = '');
+  syncUI();
+};
+
 // ---------- download ----------
 $('dlBtn').onclick = () => {
   if (!S) return;
